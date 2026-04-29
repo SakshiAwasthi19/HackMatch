@@ -1,4 +1,5 @@
-export type Role = 'LEADER' | 'MEMBER';
+export type TeamRole = 'LEADER' | 'MEMBER';
+export type UserRole = 'USER' | 'ADMIN';
 export type ChatType = 'DM' | 'GROUP';
 export type SwipeType = 'LEFT' | 'RIGHT';
 export type HackathonMode = 'ONLINE' | 'IN_PERSON' | 'HYBRID';
@@ -9,6 +10,7 @@ export interface User {
   name: string;
   email: string;
   emailVerified: boolean;
+  role: UserRole;
   image?: string;
   bio?: string;
   college?: string;

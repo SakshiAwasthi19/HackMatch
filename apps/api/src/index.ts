@@ -17,10 +17,12 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from "./auth";
 import { lastActiveMiddleware } from "./middlewares/lastActive";
 import profileRouter from "./routes/profile";
+import adminRouter from "./routes/admin";
 
 app.all("/api/auth/*", toNodeHandler(auth));
 app.use(lastActiveMiddleware);
 app.use("/api/profile", profileRouter);
+app.use("/api/admin", adminRouter);
 
 // Custom Request Extension
 declare global {

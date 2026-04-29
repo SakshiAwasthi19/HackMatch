@@ -14,12 +14,12 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@hackmatch/types": "*",
     "@prisma/client": "^5.22.0",
     "@supabase/supabase-js": "^2.105.1",
     "better-auth": "^1.6.9",
     "cors": "^2.8.6",
     "express": "^5.2.1",
-    "@hackmatch/types": "*",
     "morgan": "^1.10.1",
     "multer": "^2.1.1"
   },
