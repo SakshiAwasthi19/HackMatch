@@ -18,11 +18,13 @@ import { auth } from "./auth";
 import { lastActiveMiddleware } from "./middlewares/lastActive";
 import profileRouter from "./routes/profile";
 import adminRouter from "./routes/admin";
+import hackathonRouter from "./routes/hackathons";
 
 app.all("/api/auth/*", toNodeHandler(auth));
 app.use(lastActiveMiddleware);
 app.use("/api/profile", profileRouter);
 app.use("/api/admin", adminRouter);
+app.use("/api/hackathons", hackathonRouter);
 
 // Custom Request Extension
 declare global {
