@@ -15,7 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "@hackmatch/types": "*",
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "5.22.0",
     "@supabase/supabase-js": "^2.105.1",
     "better-auth": "^1.6.9",
     "cors": "^2.8.6",
