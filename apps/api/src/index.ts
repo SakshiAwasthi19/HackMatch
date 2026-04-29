@@ -16,9 +16,11 @@ app.use(morgan('dev'));
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./auth";
 import { lastActiveMiddleware } from "./middlewares/lastActive";
+import profileRouter from "./routes/profile";
 
 app.all("/api/auth/*", toNodeHandler(auth));
 app.use(lastActiveMiddleware);
+app.use("/api/profile", profileRouter);
 
 // Custom Request Extension
 declare global {
