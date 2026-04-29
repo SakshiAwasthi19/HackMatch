@@ -7,26 +7,20 @@ import { uploadAvatar } from '../lib/storage';
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-// Middleware to protect routes and inject session
-const protectedRoute = async (req: any, res: Response, next: any) => {
-  const session = await auth.getSession({
-    headers: req.headers
-  });
-  
-  if (!session) {
-    return res.status(401).json({ message: 'Unauthorized' });
-  }
-  
-  req.session = session;
-  next();
-};
-
-router.put('/', protectedRoute, upload.single('avatar'), async (req: any, res: Response) => {
-  const userId = req.session.user.id;
-  const { bio, college, city, linkedinUrl, githubUrl, skills } = req.body;
-  
+router.put('/', upload.single('avatar'), async (req: any, res: Response) => {
   try {
-    let imageUrl = req.session.user.image;
+    const session = await auth.api.getSession({
+      headers: req.headers
+    });
+  
+    if (!session) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const userId = session.user.id;
+    const { bio, college, city, linkedinUrl, githubUrl, skills } = req.body;
+    
+    let imageUrl = session.user.image;
 
     // Handle avatar upload if present
     if (req.file) {
@@ -54,7 +48,7 @@ router.put('/', protectedRoute, upload.single('avatar'), async (req: any, res: R
     if (parsedSkills.length > 0) {
       // 1. Create skills that don't exist
       await Promise.all(
-        parsedSkills.map((skillName) =>
+        parsedSkills.map((skillName: string) =>
           prisma.skill.upsert({
             where: { name: skillName },
             update: {},
@@ -74,7 +68,7 @@ router.put('/', protectedRoute, upload.single('avatar'), async (req: any, res: R
       });
 
       await prisma.userSkill.createMany({
-        data: dbSkills.map((s) => ({
+        data: dbSkills.map((s: { id: string }) => ({
           userId,
           skillId: s.id,
         })),

@@ -2,7 +2,7 @@ import { Response, NextFunction } from 'express';
 import { auth } from '../auth';
 
 export const requireAdmin = async (req: any, res: Response, next: NextFunction) => {
-  const session = await auth.getSession({
+  const session = await auth.api.getSession({
     headers: req.headers
   });
   

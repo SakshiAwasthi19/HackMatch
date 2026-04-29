@@ -6,13 +6,13 @@ const router = Router();
 
 // Middleware to inject session
 const optionalAuth = async (req: any, res: Response, next: any) => {
-  const session = await auth.getSession({ headers: req.headers });
+  const session = await auth.api.getSession({ headers: req.headers });
   req.session = session;
   next();
 };
 
 const requiredAuth = async (req: any, res: Response, next: any) => {
-  const session = await auth.getSession({ headers: req.headers });
+  const session = await auth.api.getSession({ headers: req.headers });
   if (!session) return res.status(401).json({ message: 'Unauthorized' });
   req.session = session;
   next();

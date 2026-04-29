@@ -50,14 +50,15 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (session?.user) {
+      const user = session.user as any;
       setFormData({
-        bio: session.user.bio || '',
-        college: session.user.college || '',
-        city: session.user.city || '',
-        linkedinUrl: session.user.linkedinUrl || '',
-        githubUrl: session.user.githubUrl || '',
+        bio: user.bio || '',
+        college: user.college || '',
+        city: user.city || '',
+        linkedinUrl: user.linkedinUrl || '',
+        githubUrl: user.githubUrl || '',
       });
-      setAvatarPreview(session.user.image || null);
+      setAvatarPreview(user.image || null);
       // Skills would need to be fetched separately or included in session
     }
   }, [session]);

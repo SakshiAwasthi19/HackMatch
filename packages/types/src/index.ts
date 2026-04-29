@@ -93,7 +93,7 @@ export interface TeamMember {
   id: string;
   teamId: string;
   userId: string;
-  role: Role;
+  role: TeamRole;
   joinedAt: Date;
 }
 

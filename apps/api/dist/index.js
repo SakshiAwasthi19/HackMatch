@@ -1,20 +1,26 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const cors_1 = __importDefault(require("cors"));
-const morgan_1 = __importDefault(require("morgan"));
-const app = (0, express_1.default)();
+import express from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
+const app = express();
 const PORT = process.env.PORT || 3001;
 // Middleware
-app.use((0, cors_1.default)({
+app.use(cors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
 }));
-app.use(express_1.default.json());
-app.use((0, morgan_1.default)('dev'));
+app.use(express.json());
+app.use(morgan('dev'));
+import { toNodeHandler } from "better-auth/node";
+import { auth } from "./auth";
+import { lastActiveMiddleware } from "./middlewares/lastActive";
+import profileRouter from "./routes/profile";
+import adminRouter from "./routes/admin";
+import hackathonRouter from "./routes/hackathons";
+app.all("/api/auth/*", toNodeHandler(auth));
+app.use(lastActiveMiddleware);
+app.use("/api/profile", profileRouter);
+app.use("/api/admin", adminRouter);
+app.use("/api/hackathons", hackathonRouter);
 // Routes
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'ok', timestamp: new Date() });
