@@ -1,0 +1,19 @@
+# Agent and GSD metadata
+.agent/
+.agents/
+.gemini/
+.gsd/
+adapters/
+assets/
+docs/
+scripts/
+GSD-STYLE.md
+model_capabilities.yaml
+PROJECT_RULES.md
+PRD.md
+
+# Node modules and Env files
+node_modules/
+.env
+.env.*
+!.env.example

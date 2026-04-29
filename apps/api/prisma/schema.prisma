@@ -1,0 +1,268 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// -----------------------------------------------------------------------------
+// Better Auth Schema
+// -----------------------------------------------------------------------------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  
+  // Custom Profile Fields
+  bio           String?
+  college       String?
+  city          String?
+  linkedinUrl   String?
+  githubUrl     String?
+  lastActiveAt  DateTime  @default(now())
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions              Session[]
+  accounts              Account[]
+  skills                UserSkill[]
+  hackathonRegistrations HackathonRegistration[]
+  hackathonInterests    HackathonInterest[]
+  sentSwipes            Swipe[]         @relation("SentSwipes")
+  receivedSwipes        Swipe[]         @relation("ReceivedSwipes")
+  matchesAsUser1        Match[]         @relation("MatchUser1")
+  matchesAsUser2        Match[]         @relation("MatchUser2")
+  teamMemberships       TeamMember[]
+  chatMemberships       ChatMember[]
+  messages              ChatMessage[]
+  notifications         Notification[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id           String   @id @default(cuid())
+  userId       String
+  accountId    String
+  providerId   String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// -----------------------------------------------------------------------------
+// Domain Schema
+// -----------------------------------------------------------------------------
+
+model Skill {
+  id    String      @id @default(cuid())
+  name  String      @unique
+  users UserSkill[]
+}
+
+model UserSkill {
+  userId  String
+  skillId String
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill   Skill @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([userId, skillId])
+}
+
+enum HackathonMode {
+  ONLINE
+  IN_PERSON
+  HYBRID
+}
+
+enum EligibilityType {
+  OPEN
+  COLLEGE_SPECIFIC
+}
+
+model Hackathon {
+  id                   String                  @id @default(cuid())
+  name                 String
+  description          String
+  startDate            DateTime
+  endDate              DateTime
+  location             String?
+  city                 String?
+  mode                 HackathonMode
+  eligibilityType      EligibilityType
+  eligibleCollegesList String[]
+  websiteUrl           String?
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+
+  registrations        HackathonRegistration[]
+  interests            HackathonInterest[]
+  swipes               Swipe[]
+  matches              Match[]
+  teams                Team[]
+}
+
+model HackathonRegistration {
+  id          String    @id @default(cuid())
+  userId      String
+  hackathonId String
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hackathon   Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, hackathonId])
+}
+
+model HackathonInterest {
+  id          String    @id @default(cuid())
+  userId      String
+  hackathonId String
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  hackathon   Hackathon @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, hackathonId])
+}
+
+enum SwipeType {
+  LEFT
+  RIGHT
+}
+
+model Swipe {
+  id          String    @id @default(cuid())
+  senderId    String
+  receiverId  String
+  hackathonId String?   // Optional for global explore
+  type        SwipeType
+  createdAt   DateTime  @default(now())
+
+  sender      User       @relation("SentSwipes", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver    User       @relation("ReceivedSwipes", fields: [receiverId], references: [id], onDelete: Cascade)
+  hackathon   Hackathon? @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId, hackathonId])
+}
+
+model Match {
+  id          String    @id @default(cuid())
+  user1Id     String
+  user2Id     String
+  hackathonId String?
+  teamId      String?
+  createdAt   DateTime  @default(now())
+
+  user1       User       @relation("MatchUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2       User       @relation("MatchUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  hackathon   Hackathon? @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  team        Team?      @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
+  @@unique([user1Id, user2Id, hackathonId])
+}
+
+model Team {
+  id          String       @id @default(cuid())
+  name        String?
+  hackathonId String
+  lookingFor  String[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  hackathon   Hackathon    @relation(fields: [hackathonId], references: [id], onDelete: Cascade)
+  members     TeamMember[]
+  matches     Match[]
+  chats       Chat[]
+}
+
+enum Role {
+  LEADER
+  MEMBER
+}
+
+model TeamMember {
+  id       String   @id @default(cuid())
+  teamId   String
+  userId   String
+  role     Role     @default(MEMBER)
+  joinedAt DateTime @default(now())
+
+  team     Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+}
+
+enum ChatType {
+  DM
+  GROUP
+}
+
+model Chat {
+  id        String        @id @default(cuid())
+  type      ChatType
+  teamId    String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  team      Team?         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  members   ChatMember[]
+  messages  ChatMessage[]
+}
+
+model ChatMember {
+  id       String   @id @default(cuid())
+  chatId   String
+  userId   String
+  joinedAt DateTime @default(now())
+
+  chat     Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([chatId, userId])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  chatId    String
+  senderId  String
+  content   String
+  createdAt DateTime @default(now())
+
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender    User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // MATCH, MESSAGE, INVITE
+  content   String
+  isRead    Boolean  @default(false)
+  relatedId String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
