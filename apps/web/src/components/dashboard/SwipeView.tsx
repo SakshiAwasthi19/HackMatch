@@ -12,7 +12,7 @@ interface SwipeViewProps {
   selectedHackathonId: string | null;
   user: { id: string; role?: string } | null;
   onRequestHackathonSelection: () => void;
-  onMatch?: (data: unknown) => void;
+  onMatch?: (data: SwipeResult) => void;
 }
 
 export default function SwipeView({ selectedHackathonId: initialHackathonId, user: _user, onRequestHackathonSelection: _onRequestHackathonSelection, onMatch }: SwipeViewProps) {

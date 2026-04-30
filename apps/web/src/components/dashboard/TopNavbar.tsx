@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { authClient, apiFetch } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import ProfileModal from '../shared/ProfileModal';
-import { Notification as NotificationType } from '@/lib/types';
+import { Notification as NotificationType, SwipeResult } from '@/lib/types';
 
 export type TabType = 'hackathons' | 'swipe' | 'explore' | 'matches' | 'messages' | 'profile' | 'admin';
 
@@ -21,8 +21,7 @@ interface TopNavbarProps {
     image?: string | null;
     role?: string | null;
   } | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onShowMatch?: (data: unknown) => void;
+  onShowMatch?: (data: SwipeResult) => void;
 }
 
 export default function TopNavbar({ activeTab, onTabChange, user, onShowMatch }: TopNavbarProps) {
