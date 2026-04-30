@@ -14,16 +14,18 @@ import AdminView from '@/components/dashboard/AdminView';
 import HackathonDetailView from '@/components/dashboard/HackathonDetailView';
 import { apiFetch } from '@/lib/auth-client';
 import MatchOverlay from '@/components/match/MatchOverlay';
+import { Hackathon, Match } from '@/lib/types';
+import { AdminTab } from '@/components/dashboard/AdminView';
 
 export default function Dashboard() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const [activeTab, setActiveTab] = useState<TabType>('hackathons');
-  const [adminTab, setAdminTab] = useState<any>('hackathons');
+  const [adminTab, setAdminTab] = useState<AdminTab>('hackathons');
   const [selectedHackathonId, setSelectedHackathonId] = useState<string | null>(null);
-  const [detailHackathon, setDetailHackathon] = useState<any>(null);
+  const [detailHackathon, setDetailHackathon] = useState<Hackathon | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
-  const [preSelectedMatchHackathonId, setPreSelectedMatchHackathonId] = useState<string | null>(null);
+  const [preSelectedMatchHackathonId] = useState<string | null>(null);
   const [matchData, setMatchData] = useState<any>(null);
   const [swipeRefreshKey, setSwipeRefreshKey] = useState(0);
 
@@ -149,7 +151,7 @@ export default function Dashboard() {
             )}
 
             {activeTab === 'admin' && (session.user as { role?: string }).role === 'ADMIN' && (
-              <AdminView initialTab={adminTab as any} />
+              <AdminView initialTab={adminTab} />
             )}
           </>
         )}

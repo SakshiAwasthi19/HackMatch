@@ -7,8 +7,11 @@ import {
   Trophy, Lightbulb, Users2, HelpCircle, ExternalLink
 } from 'lucide-react';
 
+import { Hackathon } from '@/lib/types';
+import Image from 'next/image';
+
 interface HackathonDetailViewProps {
-  hackathon: any;
+  hackathon: Hackathon;
   onBack: () => void;
   onFindTeam: (hackathonId: string) => void;
   onToggleInterest: () => void;
@@ -231,8 +234,13 @@ export default function HackathonDetailView({ hackathon, onBack, onFindTeam, onT
                 { name: 'Samir D.', role: 'ETH Foundation', img: 'https://i.pravatar.cc/150?u=samir' }
               ].map((mentor, i) => (
                 <div key={i} className="flex flex-col items-center text-center space-y-3">
-                  <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-zinc-800 p-1">
-                    <img src={mentor.img} alt={mentor.name} className="h-full w-full rounded-full object-cover" />
+                  <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-zinc-800 p-1 relative">
+                    <Image 
+                      src={mentor.img} 
+                      alt={mentor.name} 
+                      fill
+                      className="rounded-full object-cover" 
+                    />
                   </div>
                   <div>
                     <p className="text-sm font-bold text-white">{mentor.name}</p>

@@ -6,6 +6,8 @@ import { apiFetch } from '@/lib/auth-client';
 import ProfileModal from '../shared/ProfileModal';
 import ProfileCard from '../shared/ProfileCard';
 import { useRouter } from 'next/navigation';
+import { User, Match } from '@/lib/types';
+import { useCallback } from 'react';
 
 interface MatchesViewProps {
   initialHackathonId?: string | null;
@@ -15,13 +17,9 @@ export default function MatchesView({ initialHackathonId }: MatchesViewProps) {
   const router = useRouter();
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewingUser, setViewingUser] = useState<any>(null);
+  const [viewingUser, setViewingUser] = useState<User | null>(null);
 
-  useEffect(() => {
-    fetchMatches();
-  }, []);
-
-  const fetchMatches = async () => {
+  const fetchMatches = useCallback(async () => {
     try {
       setLoading(true);
       const url = initialHackathonId 
@@ -36,7 +34,11 @@ export default function MatchesView({ initialHackathonId }: MatchesViewProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [initialHackathonId]);
+
+  useEffect(() => {
+    fetchMatches();
+  }, [fetchMatches]);
 
   if (loading) {
     return (
@@ -54,7 +56,7 @@ export default function MatchesView({ initialHackathonId }: MatchesViewProps) {
         </div>
         <h2 className="text-3xl font-black text-white mb-4 tracking-tight">No Matches Yet</h2>
         <p className="text-zinc-500 max-w-sm mb-8 text-lg">
-          Keep exploring and swiping! When you and another developer both swipe right, you'll see them here.
+          Keep exploring and swiping! When you and another developer both swipe right, you&apos;ll see them here.
         </p>
       </div>
     );
@@ -68,7 +70,7 @@ export default function MatchesView({ initialHackathonId }: MatchesViewProps) {
         </div>
         <div>
           <h2 className="text-2xl font-black text-white uppercase tracking-tight">Your Matches</h2>
-          <p className="text-zinc-500 text-sm font-medium">Developers you've connected with</p>
+          <p className="text-zinc-500 text-sm font-medium">Developers you&apos;ve connected with</p>
         </div>
       </div>
 

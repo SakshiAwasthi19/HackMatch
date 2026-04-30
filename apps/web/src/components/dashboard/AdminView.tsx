@@ -7,7 +7,10 @@ import {
   Edit2, Trash2, MoreVertical, ExternalLink, Shield, ArrowUpRight,
   ChevronLeft, ChevronRight, X
 } from 'lucide-react';
+import Image from 'next/image';
 import { apiFetch } from '@/lib/auth-client';
+import { Hackathon, User, HostRequest } from '@/lib/types';
+import { useMemo, useCallback } from 'react';
 
 type AdminTab = 'dashboard' | 'hackathons' | 'users' | 'moderation' | 'analytics' | 'create';
 
@@ -31,9 +34,9 @@ const SidebarItem = ({ id, label, icon: Icon, activeTab, setActiveTab }: { id: A
 
 export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) {
   const [activeTab, setActiveTab] = useState<AdminTab>(initialTab);
-  const [hackathons, setHackathons] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
-  const [hostRequests, setHostRequests] = useState<any[]>([]);
+  const [hackathons, setHackathons] = useState<Hackathon[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [hostRequests, setHostRequests] = useState<HostRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [requestFilter, setRequestFilter] = useState<'ALL' | 'PENDING' | 'APPROVED' | 'REJECTED'>('ALL');
@@ -59,7 +62,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
 
   const domains = ["AI", "Open Source", "Finance", "Web3", "Development", "Cyber Security", "Others"];
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const [hRes, uRes, hrRes] = await Promise.all([
@@ -76,11 +79,11 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   const handleCreateHackathon = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -155,7 +158,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
     }
   };
 
-  const now = Date.now();
+  const now = useMemo(() => Date.now(), []);
 
   return (
     <div className="flex h-[calc(100vh-120px)] bg-[#050507] rounded-[2.5rem] overflow-hidden border border-zinc-800/50 shadow-2xl">
@@ -251,7 +254,12 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                 return (
                   <div key={h.id} className="group bg-[#0a0a0c] border border-zinc-800/50 rounded-3xl overflow-hidden hover:border-zinc-700 transition-all flex flex-col shadow-2xl">
                     <div className="relative h-40 bg-zinc-900 overflow-hidden">
-                      <img src={h.imageUrl || 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80'} className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-all duration-700" alt={h.name} />
+                      <Image 
+                        src={h.imageUrl || 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80'} 
+                        alt={h.name}
+                        fill
+                        className="object-cover opacity-60 group-hover:scale-105 transition-all duration-700" 
+                      />
                       <div className="absolute top-4 left-4">
                         <span className={`px-2 py-1 rounded-md text-[8px] font-black uppercase tracking-widest border backdrop-blur-md
                           ${isActive ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
@@ -372,7 +380,12 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                           <td className="py-5 px-4">
                             <div className="flex items-center gap-4">
                               <div className="h-10 w-10 rounded-full border border-zinc-800 p-0.5 group-hover:border-indigo-500/50 transition-all">
-                                <img src={user.image || `https://ui-avatars.com/api/?name=${user.name}`} className="h-full w-full object-cover rounded-full" alt="" />
+                                <Image 
+                                  src={user.image || `https://ui-avatars.com/api/?name=${user.name}`} 
+                                  alt={user.name}
+                                  fill
+                                  className="object-cover rounded-full" 
+                                />
                               </div>
                               <div>
                                 <p className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">{user.name}</p>
@@ -387,7 +400,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                           </td>
                           <td className="py-5 px-4">
                             <div className="flex items-center gap-1.5">
-                              {user.skills?.slice(0, 2).map((s: { skill: { id: string; name: string } }) => (
+                              {user.skills?.slice(0, 2).map((s) => (
                                 <span key={s.skill.id} className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 text-[9px] font-bold text-zinc-400 rounded uppercase">
                                   {s.skill.name}
                                 </span>
@@ -712,10 +725,11 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                       </div>
                       {(formData.imageUrl || posterFile) && (
                         <div className="mt-4 relative w-full h-56 rounded-2xl overflow-hidden border border-zinc-800 shadow-2xl">
-                          <img
+                          <Image
                             src={posterFile ? URL.createObjectURL(posterFile) : formData.imageUrl}
                             alt="Preview"
-                            className="w-full h-full object-cover"
+                            fill
+                            className="object-cover"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                           <button 
@@ -778,8 +792,8 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                   <span className="text-[10px] font-bold text-indigo-400 uppercase">Active Now:</span>
                   <span className="text-sm font-bold text-white">
                     {users.filter(u => {
-                      const lastActive = new Date(u.lastActiveAt || u.updatedAt || Date.now());
-                      const diffInMinutes = (Date.now() - lastActive.getTime()) / (1000 * 60);
+                      const lastActive = new Date(u.lastActiveAt || u.updatedAt || now);
+                      const diffInMinutes = (now - lastActive.getTime()) / (1000 * 60);
                       return diffInMinutes < 15; // Active if active in last 15 mins
                     }).length}
                   </span>
@@ -818,7 +832,12 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                           <td className="py-5 px-4">
                             <div className="flex items-center gap-4">
                               <div className="h-10 w-10 rounded-full border border-zinc-800 p-0.5 group-hover:border-indigo-500/50 transition-all">
-                                <img src={user.image || `https://ui-avatars.com/api/?name=${user.name}`} className="h-full w-full object-cover rounded-full" alt="" />
+                                <Image 
+                                  src={user.image || `https://ui-avatars.com/api/?name=${user.name}`} 
+                                  alt={user.name}
+                                  fill
+                                  className="object-cover rounded-full" 
+                                />
                               </div>
                               <div>
                                 <p className="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">{user.name}</p>
@@ -833,7 +852,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                           </td>
                           <td className="py-5 px-4">
                             <div className="flex items-center gap-1.5">
-                              {user.skills?.slice(0, 2).map((s: { skill: { id: string; name: string } }) => (
+                              {user.skills?.slice(0, 2).map((s) => (
                                 <span key={s.skill.id} className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 text-[9px] font-bold text-zinc-400 rounded uppercase">
                                   {s.skill.name}
                                 </span>
@@ -845,8 +864,8 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                           </td>
                           <td className="py-5 px-4">
                             {(() => {
-                              const lastActive = new Date(user.lastActiveAt || user.updatedAt || Date.now());
-                              const diffInMinutes = (Date.now() - lastActive.getTime()) / (1000 * 60);
+                              const lastActive = new Date(user.lastActiveAt || user.updatedAt || now);
+                              const diffInMinutes = (now - lastActive.getTime()) / (1000 * 60);
                               const isActive = diffInMinutes < 15;
                               return (
                                 <div className="flex items-center gap-2">
@@ -958,7 +977,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                             )}
                           </div>
                           <p className="text-[10px] text-zinc-500">{req.user?.email} • {new Date(req.createdAt).toLocaleDateString()}</p>
-                          <p className="text-xs text-zinc-400 mt-2 italic">"{req.reason}"</p>
+                          <p className="text-xs text-zinc-400 mt-2 italic">&quot;{req.reason}&quot;</p>
                         </div>
                       </div>
                       
@@ -1158,10 +1177,11 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                       </div>
                       {(formData.imageUrl || posterFile) && (
                         <div className="mt-4 relative w-full h-56 rounded-2xl overflow-hidden border border-zinc-800 shadow-2xl">
-                          <img
+                          <Image
                             src={posterFile ? URL.createObjectURL(posterFile) : formData.imageUrl}
                             alt="Preview"
-                            className="w-full h-full object-cover"
+                            fill
+                            className="object-cover"
                           />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                           <button 

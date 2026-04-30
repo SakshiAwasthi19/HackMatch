@@ -6,8 +6,11 @@ import {
   Linkedin, Github, X, Plus, Camera, Loader2,
   ArrowRight, ArrowLeft, CheckCircle2, Briefcase, Eye
 } from 'lucide-react';
-import { authClient, apiFetch } from '@/lib/auth-client';
 import ProfileCard from '../shared/ProfileCard';
+import { User as UserType, UserSkill } from '@/lib/types';
+import { useCallback } from 'react';
+import Image from 'next/image';
+import { authClient, apiFetch } from '@/lib/auth-client';
 
 const SUGGESTED_SKILLS = [
   'React', 'Next.js', 'TypeScript', 'JavaScript', 'Python',
@@ -69,7 +72,10 @@ export default function ProfileView() {
           setCity(data.city || '');
           setLinkedinUrl(data.linkedinUrl || '');
           setGithubUrl(data.githubUrl || '');
-          setSkills(data.skills?.map((s: any) => s.skill?.name || s.name || s) || []);
+          setSkills(data.skills?.map((s: any) => {
+            if (typeof s === 'string') return s;
+            return s.skill?.name || s.name || '';
+          }).filter(Boolean) || []);
           if (data.image) setAvatarPreview(data.image);
         }
       } catch {
@@ -80,9 +86,12 @@ export default function ProfileView() {
     };
 
     if (session) {
-      setName(session.user.name || '');
-      setEmail(session.user.email || '');
-      if (session.user.image) setAvatarPreview(session.user.image);
+      const updateFromSession = () => {
+        setName(session.user.name || '');
+        setEmail(session.user.email || '');
+        if (session.user.image) setAvatarPreview(session.user.image);
+      };
+      updateFromSession();
       fetchProfile();
     }
   }, [session]);
@@ -132,8 +141,8 @@ export default function ProfileView() {
       }
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setSaving(false);
     }
@@ -391,7 +400,9 @@ export default function ProfileView() {
               <div className="relative group">
                 <div className="h-40 w-40 rounded-2xl bg-zinc-800 border-2 border-dashed border-zinc-600 flex items-center justify-center overflow-hidden">
                   {avatarPreview ? (
-                    <img src={avatarPreview} alt="Avatar" className="h-full w-full object-cover" />
+                    <div className="relative h-full w-full">
+                      <Image src={avatarPreview} alt="Avatar" fill className="object-cover" />
+                    </div>
                   ) : (
                     <User className="h-16 w-16 text-zinc-600" />
                   )}

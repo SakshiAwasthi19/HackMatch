@@ -17,6 +17,7 @@ import {
   Loader2,
   Sparkles
 } from 'lucide-react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -50,7 +51,14 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (session?.user) {
-      const user = session.user as any;
+      const user = session.user as { 
+        bio?: string; 
+        college?: string; 
+        city?: string; 
+        linkedinUrl?: string; 
+        githubUrl?: string;
+        image?: string;
+      };
       setFormData(prev => {
         const next = {
           bio: user.bio || '',
@@ -59,7 +67,6 @@ export default function ProfilePage() {
           linkedinUrl: user.linkedinUrl || '',
           githubUrl: user.githubUrl || '',
         };
-        // Only update if actually different to prevent cascading renders
         if (JSON.stringify(prev) === JSON.stringify(next)) return prev;
         return next;
       });
@@ -178,7 +185,9 @@ export default function ProfilePage() {
             <div className="relative group">
               <div className="h-32 w-32 rounded-full overflow-hidden border-4 border-indigo-500/20 bg-zinc-800 flex items-center justify-center">
                 {avatarPreview ? (
-                  <img src={avatarPreview} alt="Avatar" className="h-full w-full object-cover" />
+                  <div className="relative h-full w-full">
+                    <Image src={avatarPreview} alt="Avatar" fill className="object-cover" />
+                  </div>
                 ) : (
                   <User className="h-16 w-16 text-zinc-600" />
                 )}

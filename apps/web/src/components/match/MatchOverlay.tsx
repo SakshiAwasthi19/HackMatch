@@ -4,6 +4,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { Sparkles, MessageCircle, Trophy, ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 
 interface MatchOverlayProps {
   isOpen: boolean;
@@ -124,7 +125,9 @@ export default function MatchOverlay({
             >
               <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center overflow-hidden border-2 border-emerald-400/30">
                 {currentUserImage ? (
-                  <img src={currentUserImage} alt="You" className="h-full w-full object-cover" />
+                  <div className="relative h-full w-full">
+                    <Image src={currentUserImage} alt="You" fill className="object-cover" />
+                  </div>
                 ) : (
                   <span className="text-lg font-bold text-white">You</span>
                 )}
@@ -141,7 +144,9 @@ export default function MatchOverlay({
 
               <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center overflow-hidden border-2 border-indigo-400/30">
                 {matchedUser.image ? (
-                  <img src={matchedUser.image} alt={matchedUser.name} className="h-full w-full object-cover" />
+                  <div className="relative h-full w-full">
+                    <Image src={matchedUser.image} alt={matchedUser.name} fill className="object-cover" />
+                  </div>
                 ) : (
                   <span className="text-lg font-bold text-white">{matchedInitials}</span>
                 )}

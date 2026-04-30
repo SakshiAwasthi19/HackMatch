@@ -1,8 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 'use client';
 
-import React from 'react';
 import { Eye, MapPin, GraduationCap } from 'lucide-react';
+import Image from 'next/image';
 
 export interface ProfileCardProps {
   name: string;
@@ -49,10 +48,11 @@ export default function ProfileCard({
       {/* Card Image Section */}
       <div className="relative h-64 flex-shrink-0 bg-gradient-to-br from-indigo-600/30 via-purple-600/20 to-zinc-900 flex items-center justify-center overflow-hidden">
         {image ? (
-          <img 
+          <Image 
             src={image} 
             alt={name} 
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" 
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-105" 
           />
         ) : (
           <div className="h-28 w-28 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-2xl">

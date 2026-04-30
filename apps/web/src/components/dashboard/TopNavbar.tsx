@@ -3,9 +3,11 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Code2, Compass, LayoutGrid, MessageSquare, Users, LogOut, User, Bell, Zap } from 'lucide-react';
+import Image from 'next/image';
 import { authClient, apiFetch } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import ProfileModal from '../shared/ProfileModal';
+import { Notification as NotificationType } from '@/lib/types';
 
 export type TabType = 'hackathons' | 'swipe' | 'explore' | 'matches' | 'messages' | 'profile' | 'admin';
 
@@ -20,14 +22,14 @@ interface TopNavbarProps {
     role?: string | null;
   } | null;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onShowMatch?: (data: any) => void;
+  onShowMatch?: (data: unknown) => void;
 }
 
 export default function TopNavbar({ activeTab, onTabChange, user, onShowMatch }: TopNavbarProps) {
   const router = useRouter();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<NotificationType[]>([]);
   const [viewingUser, setViewingUser] = useState<{
     name: string;
     image: string | null;
@@ -54,14 +56,29 @@ export default function TopNavbar({ activeTab, onTabChange, user, onShowMatch }:
   }, []);
 
   useEffect(() => {
-    fetchNotifications();
-    const interval = setInterval(fetchNotifications, 5000); // Polling every 5s for faster updates
-    return () => clearInterval(interval);
+    let isMounted = true;
+    
+    const initialFetch = async () => {
+      await fetchNotifications();
+    };
+    
+    if (isMounted) {
+      initialFetch();
+    }
+    
+    const interval = setInterval(() => {
+      if (isMounted) fetchNotifications();
+    }, 5000); 
+    
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
   }, [fetchNotifications]);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
-  const handleNotificationClick = async (notification: any) => {
+  const handleNotificationClick = async (notification: NotificationType) => {
     if (notification.type === 'INTEREST' && notification.actor) {
       onTabChange('swipe');
     }
@@ -207,14 +224,16 @@ export default function TopNavbar({ activeTab, onTabChange, user, onShowMatch }:
                         >
                           <div className="h-10 w-10 rounded-full bg-indigo-500/10 flex-shrink-0 flex items-center justify-center">
                             {notification.actor?.image ? (
-                              <img src={notification.actor.image} alt="" className="h-full w-full object-cover rounded-full" />
+                              <div className="relative h-full w-full rounded-full overflow-hidden">
+                                <Image src={notification.actor.image} alt="" fill className="object-cover" />
+                              </div>
                             ) : (
                               <User className="h-5 w-5 text-indigo-500" />
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-sm text-zinc-900 dark:text-zinc-100 leading-snug">
-                              {notification.content}
+                              {notification.content || notification.message}
                             </p>
                             <p className="text-[10px] text-zinc-500 mt-1 uppercase font-bold tracking-wider">
                               {new Date(notification.createdAt).toLocaleDateString()}
@@ -242,7 +261,9 @@ export default function TopNavbar({ activeTab, onTabChange, user, onShowMatch }:
                 }`}
             >
               {user?.image ? (
-                <img src={user.image} alt="Profile" className="h-full w-full object-cover rounded-full" />
+                <div className="relative h-full w-full rounded-full overflow-hidden">
+                  <Image src={user.image} alt="Profile" fill className="object-cover" />
+                </div>
               ) : (
                 <User className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
               )}

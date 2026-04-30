@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, MapPin, Users, Plus, Search, Filter, Heart, Zap, Globe, Cpu, Code, ArrowUpRight } from 'lucide-react';
 import { apiFetch, authClient } from '@/lib/auth-client';
+import Image from 'next/image';
 
 interface HackathonListProps {
   onSelectHackathon: (id: string) => void;
@@ -40,7 +41,7 @@ export default function HackathonList({ onSelectHackathon, onCreateClick }: Hack
             setHasPendingRequest(rData.status === 'PENDING');
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Error loading initial data:', err);
       } finally {
         setLoading(false);
@@ -142,10 +143,11 @@ export default function HackathonList({ onSelectHackathon, onCreateClick }: Hack
           >
             {/* Image Placeholder with Badge */}
             <div className="relative h-48 bg-gradient-to-br from-zinc-800 to-zinc-900 overflow-hidden">
-              <img
+              <Image
                 src={hackathon.imageUrl || 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?q=80&w=2070&auto=format&fit=crop'}
                 alt={hackathon.name}
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-60"
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-60"
               />
               <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-bold text-white uppercase tracking-wider border border-white/10">
                 {hackathon.mode}

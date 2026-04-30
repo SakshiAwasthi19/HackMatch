@@ -47,8 +47,8 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
         const deckData = await deckRes.json();
         setUsers(deckData);
         setDeckEmpty(deckData.length === 0);
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setLoading(false);
       }
@@ -148,12 +148,28 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.1 }}
           >
-            <SwipeDeck
-              users={users}
-              onSwipe={handleSwipe}
-              onEmpty={handleEmpty}
-              onMatch={handleMatch}
-            />
+            {deckEmpty ? (
+              <div className="flex flex-col items-center justify-center h-[500px] text-center gap-4 animate-in fade-in zoom-in duration-500">
+                <div className="h-20 w-20 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
+                  <Sparkles className="h-10 w-10 text-indigo-400" />
+                </div>
+                <h2 className="text-2xl font-bold">No more profiles!</h2>
+                <p className="text-zinc-500">You&apos;ve seen everyone for this hackathon. Check back later!</p>
+                <button
+                  onClick={() => router.push('/dashboard/hackathons')}
+                  className="mt-4 px-6 py-3 bg-zinc-900 border border-zinc-800 rounded-xl hover:bg-zinc-800 transition-colors"
+                >
+                  Back to Hackathons
+                </button>
+              </div>
+            ) : (
+              <SwipeDeck
+                users={users}
+                onSwipe={handleSwipe}
+                onEmpty={handleEmpty}
+                onMatch={handleMatch}
+              />
+            )}
           </motion.div>
         )}
       </main>
@@ -166,7 +182,7 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
           teamId={matchResult.teamId}
           chatId={matchResult.chatId || ''}
           hackathonName={hackathon?.name || ''}
-          currentUserImage={(session.user as any).image || null}
+          currentUserImage={session.user?.image || null}
           onClose={() => setMatchResult(null)}
         />
       )}

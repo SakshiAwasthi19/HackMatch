@@ -1,9 +1,9 @@
-/* eslint-disable @next/next/no-img-element */
 'use client';
-
+ 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, MapPin, GraduationCap, Github, Linkedin, Briefcase, FileText } from 'lucide-react';
+import Image from 'next/image';
 
 export interface ProfileModalUser {
   name: string;
@@ -66,7 +66,7 @@ export default function ProfileModal({ isOpen, onClose, user }: ProfileModalProp
               
               <div className="absolute -bottom-12 left-8 h-24 w-24 sm:h-32 sm:w-32 rounded-2xl bg-zinc-800 border-4 border-zinc-900 overflow-hidden shadow-xl">
                 {user.image ? (
-                  <img src={user.image} alt={user.name} className="h-full w-full object-cover" />
+                  <Image src={user.image} alt={user.name} fill className="object-cover" />
                 ) : (
                   <div className="h-full w-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
                     <span className="text-3xl sm:text-4xl font-bold text-white">{initials}</span>
