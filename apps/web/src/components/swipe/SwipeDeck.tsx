@@ -4,14 +4,8 @@ import React, { useState, useRef } from 'react';
 import { useSprings } from '@react-spring/web';
 import { useDrag } from '@use-gesture/react';
 import { X, Heart } from 'lucide-react';
+import { SwipeResult } from '@/lib/types';
 import SwipeCard, { type SwipeDeckUser } from './SwipeCard';
-
-export interface SwipeResult {
-  matched: boolean;
-  teamId?: string | null;
-  chatId?: string;
-  matchedUser?: { id: string; name: string; image: string | null };
-}
 
 interface SwipeDeckProps {
   users: SwipeDeckUser[];

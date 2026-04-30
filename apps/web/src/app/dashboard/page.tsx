@@ -14,7 +14,7 @@ import AdminView from '@/components/dashboard/AdminView';
 import HackathonDetailView from '@/components/dashboard/HackathonDetailView';
 import { apiFetch } from '@/lib/auth-client';
 import MatchOverlay from '@/components/match/MatchOverlay';
-import { Hackathon, Match, AdminTab } from '@/lib/types';
+import { Hackathon, Match, AdminTab, SwipeResult } from '@/lib/types';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -25,7 +25,7 @@ export default function Dashboard() {
   const [detailHackathon, setDetailHackathon] = useState<Hackathon | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [preSelectedMatchHackathonId] = useState<string | null>(null);
-  const [matchData, setMatchData] = useState<unknown>(null);
+  const [matchData, setMatchData] = useState<SwipeResult | null>(null);
   const [swipeRefreshKey, setSwipeRefreshKey] = useState(0);
 
   useEffect(() => {
@@ -158,9 +158,9 @@ export default function Dashboard() {
       {matchData && (
         <MatchOverlay 
           isOpen={!!matchData}
-          matchedUser={matchData.matchedUser}
-          chatId={matchData.chatId}
-          hackathonName={matchData.hackathonName}
+          matchedUser={matchData.matchedUser!}
+          chatId={matchData.chatId!}
+          hackathonName={matchData.hackathonName || ''}
           currentUserImage={session.user?.image}
           onClose={() => setMatchData(null)} 
         />

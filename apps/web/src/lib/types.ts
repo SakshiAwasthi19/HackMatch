@@ -82,3 +82,11 @@ export interface Match {
 }
 
 export type AdminTab = 'dashboard' | 'hackathons' | 'users' | 'moderation' | 'analytics' | 'create';
+
+export interface SwipeResult {
+  matched: boolean;
+  teamId?: string | null;
+  chatId?: string;
+  hackathonName?: string;
+  matchedUser?: { id: string; name: string; image: string | null };
+}
