@@ -14,8 +14,7 @@ import AdminView from '@/components/dashboard/AdminView';
 import HackathonDetailView from '@/components/dashboard/HackathonDetailView';
 import { apiFetch } from '@/lib/auth-client';
 import MatchOverlay from '@/components/match/MatchOverlay';
-import { Hackathon, Match } from '@/lib/types';
-import { AdminTab } from '@/components/dashboard/AdminView';
+import { Hackathon, Match, AdminTab } from '@/lib/types';
 
 export default function Dashboard() {
   const router = useRouter();

@@ -9,10 +9,10 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { apiFetch } from '@/lib/auth-client';
-import { Hackathon, User, HostRequest } from '@/lib/types';
+import { Hackathon, User, HostRequest, AdminTab } from '@/lib/types';
 import { useMemo, useCallback } from 'react';
 
-export type AdminTab = 'dashboard' | 'hackathons' | 'users' | 'moderation' | 'analytics' | 'create';
+
 
 interface AdminViewProps {
   initialTab?: AdminTab;

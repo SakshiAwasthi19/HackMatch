@@ -80,3 +80,5 @@ export interface Match {
   };
   otherUser: User;
 }
+
+export type AdminTab = 'dashboard' | 'hackathons' | 'users' | 'moderation' | 'analytics' | 'create';
