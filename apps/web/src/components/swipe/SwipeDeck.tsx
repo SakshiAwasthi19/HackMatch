@@ -4,8 +4,8 @@ import React, { useState, useRef } from 'react';
 import { useSprings } from '@react-spring/web';
 import { useDrag } from '@use-gesture/react';
 import { X, Heart } from 'lucide-react';
-import { SwipeResult } from '@/lib/types';
-import SwipeCard, { type SwipeDeckUser } from './SwipeCard';
+import { SwipeResult, SwipeDeckUser } from '@/lib/types';
+import SwipeCard from './SwipeCard';
 
 interface SwipeDeckProps {
   users: SwipeDeckUser[];
