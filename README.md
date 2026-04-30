@@ -25,12 +25,12 @@ Once matched, teams get immediate access to private chat rooms (DMs or Group Cha
 ## 📸 Experience the UI
 
 <div align="center">
-  <img src="./brain/0e5ff001-232c-476a-be7a-29aaec042f42/media__1777522298494.png" width="45%" alt="Swipe Deck View" />
-  <img src="./brain/0e5ff001-232c-476a-be7a-29aaec042f42/media__1777521675338.png" width="45%" alt="Match Celebration" />
+  <img src="./apps/web/public/images/swipe_deck.png" width="45%" alt="Swipe Deck View" />
+  <img src="./apps/web/public/images/match_overlay.png" width="45%" alt="Match Celebration" />
 </div>
 
 <div align="center">
-  <img src="./brain/0e5ff001-232c-476a-be7a-29aaec042f42/media__1777507489546.png" width="91%" alt="Dashboard Overview" />
+  <img src="./apps/web/public/images/dashboard.png" width="91%" alt="Dashboard Overview" />
 </div>
 
 ---
