@@ -13,8 +13,9 @@ interface Hackathon {
 
 interface SwipeViewProps {
   selectedHackathonId: string | null;
-  user: any;
+  user: { id: string; role?: string } | null;
   onRequestHackathonSelection: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onMatch?: (data: any) => void;
 }
 
@@ -22,7 +23,17 @@ export default function SwipeView({ selectedHackathonId: initialHackathonId, use
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewingUser, setViewingUser] = useState<any>(null);
+  const [viewingUser, setViewingUser] = useState<{
+    name: string;
+    image: string | null;
+    title: string | null;
+    bio: string | null;
+    college: string | null;
+    city: string | null;
+    linkedinUrl: string | null;
+    githubUrl: string | null;
+    skills: string[] | { skill: { name: string } }[];
+  } | null>(null);
   const [hackathons, setHackathons] = useState<Hackathon[]>([]);
   const [activeHackathonId, setActiveHackathonId] = useState<string | null>(initialHackathonId);
 
@@ -55,8 +66,8 @@ export default function SwipeView({ selectedHackathonId: initialHackathonId, use
 
       const data = await res.json();
       setUsers(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load swipe deck');
     } finally {
       setLoading(false);
     }
