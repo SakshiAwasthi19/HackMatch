@@ -148,8 +148,8 @@ export default function Dashboard() {
               <ProfileView />
             )}
 
-            {activeTab === 'admin' && (session.user as any).role === 'ADMIN' && (
-              <AdminView initialTab={adminTab} />
+            {activeTab === 'admin' && (session.user as { role?: string }).role === 'ADMIN' && (
+              <AdminView initialTab={adminTab as any} />
             )}
           </>
         )}

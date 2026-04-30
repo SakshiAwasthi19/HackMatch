@@ -7,7 +7,11 @@ import ProfileModal from '../shared/ProfileModal';
 import ProfileCard from '../shared/ProfileCard';
 import { useRouter } from 'next/navigation';
 
-export default function MatchesView() {
+interface MatchesViewProps {
+  initialHackathonId?: string | null;
+}
+
+export default function MatchesView({ initialHackathonId }: MatchesViewProps) {
   const router = useRouter();
   const [matches, setMatches] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -20,7 +24,10 @@ export default function MatchesView() {
   const fetchMatches = async () => {
     try {
       setLoading(true);
-      const res = await apiFetch('/api/matches');
+      const url = initialHackathonId 
+        ? `/api/matches?hackathonId=${initialHackathonId}` 
+        : '/api/matches';
+      const res = await apiFetch(url);
       if (res.ok) {
         setMatches(await res.json());
       }
