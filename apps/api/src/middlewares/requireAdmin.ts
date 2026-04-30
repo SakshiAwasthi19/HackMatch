@@ -11,7 +11,7 @@ export const requireAdmin = async (req: any, res: Response, next: NextFunction) 
   }
   
   // session.user.role comes from Better Auth which we linked to Prisma
-  if (session.user.role !== 'ADMIN') {
+  if ((session.user as any).role !== 'ADMIN') {
     return res.status(403).json({ message: 'Forbidden: Admin access required' });
   }
   

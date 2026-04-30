@@ -22,7 +22,7 @@ router.get('/', requiredAuth, async (req: any, res: Response) => {
 
     // Fetch actor details for relevant notifications
     const actorIds = (notifications as any[])
-      .map(n => n.actorId)
+      .map((n: any) => n.actorId)
       .filter((id): id is string => !!id);
 
     const actors = await prisma.user.findMany({
@@ -41,9 +41,9 @@ router.get('/', requiredAuth, async (req: any, res: Response) => {
       }
     });
 
-    const actorsMap = new Map(actors.map(a => [a.id, a]));
+    const actorsMap = new Map(actors.map((a: any) => [a.id, a]));
 
-    const enrichedNotifications = (notifications as any[]).map(n => ({
+    const enrichedNotifications = (notifications as any[]).map((n: any) => ({
       ...n,
       actor: n.actorId ? actorsMap.get(n.actorId) : null
     }));

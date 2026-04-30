@@ -18,6 +18,8 @@ const requiredAuth = async (req, res, next) => {
 // List Hackathons (Sorted by nearest start date)
 router.get('/', async (req, res) => {
     try {
+        const session = await auth.api.getSession({ headers: req.headers });
+        const userId = session?.user?.id;
         const hackathons = await prisma.hackathon.findMany({
             orderBy: [
                 { startDate: 'asc' },
@@ -30,9 +32,17 @@ router.get('/', async (req, res) => {
                         registrations: true,
                     },
                 },
+                interests: userId ? {
+                    where: { userId },
+                    select: { id: true }
+                } : false
             },
         });
-        res.json(hackathons);
+        const hackathonsWithStatus = hackathons.map((h) => ({
+            ...h,
+            isInterested: h.interests?.length > 0
+        }));
+        res.json(hackathonsWithStatus);
     }
     catch (error) {
         console.error('Error fetching hackathons:', error);
@@ -42,7 +52,9 @@ router.get('/', async (req, res) => {
 // Get Single Hackathon
 router.get('/:id', async (req, res) => {
     try {
-        const { id } = req.params;
+        const id = req.params.id;
+        const session = await auth.api.getSession({ headers: req.headers });
+        const userId = session?.user?.id;
         const hackathon = await prisma.hackathon.findUnique({
             where: { id },
             include: {
@@ -53,34 +65,52 @@ router.get('/:id', async (req, res) => {
                         teams: true,
                     },
                 },
+                interests: userId ? {
+                    where: { userId },
+                    select: { id: true }
+                } : false
             },
         });
         if (!hackathon)
             return res.status(404).json({ message: 'Hackathon not found' });
-        res.json(hackathon);
+        const hackathonWithStatus = {
+            ...hackathon,
+            isInterested: hackathon.interests?.length > 0
+        };
+        res.json(hackathonWithStatus);
     }
     catch (error) {
         console.error('Error fetching hackathon:', error);
         res.status(500).json({ message: 'Error fetching hackathon' });
     }
 });
-// Mark Interest
+// Toggle Interest
 router.post('/:id/interest', requiredAuth, async (req, res) => {
     try {
         const { id: hackathonId } = req.params;
         const userId = req.session.user.id;
-        const interest = await prisma.hackathonInterest.upsert({
-            where: {
-                userId_hackathonId: { userId, hackathonId },
-            },
-            update: {},
-            create: { userId, hackathonId },
+        console.log(`[Interest] Toggling interest for user ${userId} on hackathon ${hackathonId}`);
+        const existing = await prisma.hackathonInterest.findUnique({
+            where: { userId_hackathonId: { userId, hackathonId } }
         });
-        res.json(interest);
+        if (existing) {
+            await prisma.hackathonInterest.delete({
+                where: { id: existing.id }
+            });
+            console.log(`[Interest] Removed interest`);
+            return res.json({ interested: false });
+        }
+        else {
+            const created = await prisma.hackathonInterest.create({
+                data: { userId, hackathonId }
+            });
+            console.log(`[Interest] Created interest`);
+            return res.json({ interested: true, ...created });
+        }
     }
     catch (error) {
-        console.error('Error marking interest:', error);
-        res.status(500).json({ message: 'Error marking interest' });
+        console.error('Error toggling interest:', error);
+        res.status(500).json({ message: 'Error toggling interest' });
     }
 });
 // Register
@@ -100,6 +130,66 @@ router.post('/:id/register', requiredAuth, async (req, res) => {
     catch (error) {
         console.error('Error registering for hackathon:', error);
         res.status(500).json({ message: 'Error registering for hackathon' });
+    }
+});
+// GET Swipe Deck (Debug Mode: Returns everyone)
+router.get('/:id/swipe-deck', requiredAuth, async (req, res) => {
+    try {
+        const { id: hackathonId } = req.params;
+        const currentUserId = req.session.user.id;
+        // 1. Get IDs of people the user has already swiped on for this hackathon
+        const swipedRecords = await prisma.swipe.findMany({
+            where: { senderId: currentUserId, hackathonId },
+            select: { receiverId: true }
+        });
+        const swipedUserIds = swipedRecords.map(s => s.receiverId);
+        // 2. Get IDs of people who have already swiped RIGHT on current user (Globally OR for this hackathon)
+        const receivedRightSwipes = await prisma.swipe.findMany({
+            where: {
+                receiverId: currentUserId,
+                type: 'RIGHT',
+                senderId: { notIn: [currentUserId, ...swipedUserIds] }
+            },
+            select: { senderId: true }
+        });
+        const potentialMatchIds = receivedRightSwipes.map(s => s.senderId);
+        // 3. Fetch prioritized users (People who liked you first - either globally or for this hackathon)
+        const prioritizedUsers = await prisma.user.findMany({
+            where: { id: { in: potentialMatchIds } },
+            select: {
+                id: true, name: true, image: true, bio: true, title: true,
+                college: true, city: true, linkedinUrl: true, githubUrl: true,
+                skills: { include: { skill: true } }
+            }
+        });
+        // 4. Fetch regular users who are specifically interested in this hackathon
+        const otherInterests = await prisma.hackathonInterest.findMany({
+            where: {
+                hackathonId,
+                userId: {
+                    notIn: [currentUserId, ...swipedUserIds, ...potentialMatchIds]
+                }
+            },
+            include: {
+                user: {
+                    select: {
+                        id: true, name: true, image: true, bio: true, title: true,
+                        college: true, city: true, linkedinUrl: true, githubUrl: true,
+                        skills: { include: { skill: true } }
+                    }
+                }
+            },
+            take: 20 - prioritizedUsers.length
+        });
+        const users = [
+            ...prioritizedUsers,
+            ...otherInterests.map(i => i.user)
+        ];
+        res.json(users);
+    }
+    catch (error) {
+        console.error('Error fetching swipe deck:', error);
+        res.status(500).json({ message: 'Error fetching swipe deck' });
     }
 });
 export default router;

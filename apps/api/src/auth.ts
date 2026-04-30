@@ -19,11 +19,13 @@ export const auth = betterAuth({
                     const adminEmails = (process.env.ADMIN_EMAILS || "").split(",").map(e => e.trim());
                     if (adminEmails.includes(user.email)) {
                         return {
-                            ...user,
-                            role: "ADMIN"
+                            data: {
+                                ...user,
+                                role: "ADMIN"
+                            }
                         };
                     }
-                    return user;
+                    return { data: user };
                 }
             }
         },
@@ -41,7 +43,7 @@ export const auth = betterAuth({
                             });
                         }
                     }
-                    return session;
+                    return { data: session };
                 }
             }
         }
