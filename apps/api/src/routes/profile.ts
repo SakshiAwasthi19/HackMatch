@@ -7,7 +7,30 @@ import { uploadAvatar } from '../lib/storage';
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
-router.put('/', upload.single('avatar'), async (req: any, res: Response) => {
+// GET current user's profile
+router.get('/', async (req: any, res: Response) => {
+  try {
+    const session = await auth.api.getSession({ headers: req.headers });
+    if (!session) return res.status(401).json({ message: 'Unauthorized' });
+
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: {
+        skills: {
+          include: { skill: true },
+        },
+      },
+    });
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user);
+  } catch (error) {
+    console.error('Profile fetch error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+router.put('/', upload.single('avatar') as any, async (req: any, res: Response) => {
   try {
     const session = await auth.api.getSession({
       headers: req.headers
@@ -18,14 +41,25 @@ router.put('/', upload.single('avatar'), async (req: any, res: Response) => {
     }
 
     const userId = session.user.id;
-    const { bio, college, city, linkedinUrl, githubUrl, skills } = req.body;
+    const { title, bio, college, city, linkedinUrl, githubUrl, skills } = req.body;
     
-    let imageUrl = session.user.image;
+    // Get current user to preserve image if not changed
+    const currentUser = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { image: true }
+    });
+    
+    let imageUrl = currentUser?.image || null;
 
     // Handle avatar upload if present
     if (req.file) {
-      const filename = `avatars/${userId}-${Date.now()}.jpg`;
-      imageUrl = await uploadAvatar(req.file.buffer, filename);
+      try {
+        const filename = `avatars/${userId}-${Date.now()}.jpg`;
+        imageUrl = await uploadAvatar(req.file.buffer, filename);
+      } catch (uploadErr) {
+        console.error('Avatar upload failed (continuing without it):', uploadErr);
+        // Don't fail the whole request if avatar upload fails
+      }
     }
 
     // Parse skills if they come as a string (JSON stringified array)
@@ -35,11 +69,12 @@ router.put('/', upload.single('avatar'), async (req: any, res: Response) => {
     await prisma.user.update({
       where: { id: userId },
       data: {
-        bio,
-        college,
-        city,
-        linkedinUrl,
-        githubUrl,
+        title: title || null,
+        bio: bio || null,
+        college: college || null,
+        city: city || null,
+        linkedinUrl: linkedinUrl || null,
+        githubUrl: githubUrl || null,
         image: imageUrl,
       },
     });

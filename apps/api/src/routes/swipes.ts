@@ -6,108 +6,39 @@ const router = Router();
 
 // Auth middleware (reused pattern)
 const requiredAuth = async (req: any, res: Response, next: any) => {
-  const session = await auth.api.getSession({ headers: req.headers });
+  const session = await auth.api.getSession({ headers: req.headers as any });
   if (!session) return res.status(401).json({ message: 'Unauthorized' });
   req.session = session;
   next();
 };
 
-// ─────────────────────────────────────────────────────
-// GET /api/hackathons/:hackathonId/swipe-deck
-// ─────────────────────────────────────────────────────
-router.get('/hackathons/:hackathonId/swipe-deck', requiredAuth, async (req: any, res: Response) => {
-  try {
-    const { hackathonId } = req.params;
-    const currentUserId: string = req.session.user.id;
-
-    // 1. Fetch hackathon for eligibility rules
-    const hackathon = await prisma.hackathon.findUnique({ where: { id: hackathonId } });
-    if (!hackathon) return res.status(404).json({ message: 'Hackathon not found' });
-
-    // 2. Find full teams (4+ members) for this hackathon
-    const teamsWithCounts = await prisma.team.findMany({
-      where: { hackathonId },
-      include: { _count: { select: { members: true } } },
-    });
-    const fullTeamIds = teamsWithCounts
-      .filter((t: any) => t._count.members >= 4)
-      .map((t: any) => t.id);
-
-    // 3. Get userIds in full teams
-    let fullTeamUserIds: string[] = [];
-    if (fullTeamIds.length > 0) {
-      const members = await prisma.teamMember.findMany({
-        where: { teamId: { in: fullTeamIds } },
-        select: { userId: true },
-      });
-      fullTeamUserIds = members.map((m: { userId: string }) => m.userId);
-    }
-
-    // 4. Build WHERE clause
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-
-    const whereClause: any = {
-      id: { notIn: [...fullTeamUserIds, currentUserId] },
-      lastActiveAt: { gte: sevenDaysAgo },
-      // Exclude users already swiped on by current user for this hackathon
-      receivedSwipes: {
-        none: {
-          senderId: currentUserId,
-          hackathonId,
-        },
-      },
-    };
-
-    // 5. College eligibility filter
-    if (hackathon.eligibilityType === 'COLLEGE_SPECIFIC' && hackathon.eligibleCollegesList.length > 0) {
-      whereClause.college = { in: hackathon.eligibleCollegesList };
-    }
-
-    // 6. Query users
-    const users = await prisma.user.findMany({
-      where: whereClause,
-      take: 20,
-      select: {
-        id: true,
-        name: true,
-        image: true,
-        bio: true,
-        college: true,
-        city: true,
-        linkedinUrl: true,
-        githubUrl: true,
-        skills: {
-          include: { skill: true },
-        },
-      },
-    });
-
-    res.json(users);
-  } catch (error) {
-    console.error('Error fetching swipe deck:', error);
-    res.status(500).json({ message: 'Error fetching swipe deck' });
-  }
-});
-
-// ─────────────────────────────────────────────────────
 // POST /api/swipes
-// ─────────────────────────────────────────────────────
 router.post('/swipes', requiredAuth, async (req: any, res: Response) => {
   try {
     const { receiverId, hackathonId, type } = req.body;
     const currentUserId: string = req.session.user.id;
 
-    if (!receiverId || !hackathonId || !type) {
-      return res.status(400).json({ message: 'receiverId, hackathonId, and type are required' });
+    if (!receiverId || !type) {
+      return res.status(400).json({ message: 'receiverId and type are required' });
     }
 
     if (type !== 'LEFT' && type !== 'RIGHT') {
       return res.status(400).json({ message: 'type must be LEFT or RIGHT' });
     }
 
-    // Create swipe record
-    await prisma.swipe.create({
-      data: {
+    // Create or update swipe record
+    await prisma.swipe.upsert({
+      where: {
+        senderId_receiverId_hackathonId: {
+          senderId: currentUserId,
+          receiverId,
+          hackathonId,
+        },
+      },
+      update: {
+        type,
+      },
+      create: {
         senderId: currentUserId,
         receiverId,
         hackathonId,
@@ -121,33 +52,40 @@ router.post('/swipes', requiredAuth, async (req: any, res: Response) => {
     }
 
     // RIGHT swipe — create interest notification for receiver
-    const hackathon = await prisma.hackathon.findUnique({
-      where: { id: hackathonId },
-      select: { name: true },
-    });
+    let hackathonName = 'a hackathon';
+    if (hackathonId) {
+      const hackathon = await prisma.hackathon.findUnique({
+        where: { id: hackathonId },
+        select: { name: true },
+      });
+      if (hackathon) hackathonName = hackathon.name;
+    }
 
     await prisma.notification.create({
       data: {
         userId: receiverId,
         type: 'INTEREST',
-        content: `Someone is interested in teaming up with you for ${hackathon?.name || 'a hackathon'}!`,
-        relatedId: hackathonId,
-      },
+        content: `Someone is interested in teaming up with you for ${hackathonName}!`,
+        relatedId: hackathonId || null,
+        actorId: currentUserId,
+      } as any,
     });
 
-    // Check for reciprocal RIGHT swipe
+    // Check for reciprocal RIGHT swipe (Any hackathon or global)
     const reciprocal = await prisma.swipe.findFirst({
       where: {
         senderId: receiverId,
         receiverId: currentUserId,
-        hackathonId,
         type: 'RIGHT',
       },
     });
 
     if (!reciprocal) {
+      console.log(`[Swipe] No reciprocal RIGHT swipe found.`);
       return res.json({ matched: false });
     }
+
+    console.log(`[Swipe] MUTUAL MATCH FOUND! Proceeding with match creation...`);
 
     // ── MUTUAL MATCH ── Atomic transaction ──────────
     const result = await prisma.$transaction(async (tx: any) => {
@@ -198,15 +136,31 @@ router.post('/swipes', requiredAuth, async (req: any, res: Response) => {
         data: { chatId: chat.id, userId: receiverId },
       });
 
-      // Create match record
-      const match = await tx.match.create({
-        data: {
-          user1Id: currentUserId,
-          user2Id: receiverId,
-          hackathonId,
-          teamId: team?.id || undefined,
+      // Check if match already exists
+      const existingMatch = await tx.match.findFirst({
+        where: {
+          OR: [
+            { user1Id: currentUserId, user2Id: receiverId, hackathonId },
+            { user1Id: receiverId, user2Id: currentUserId, hackathonId },
+          ],
         },
       });
+
+      let match;
+      if (existingMatch) {
+        console.log(`[Match] Match already exists, reusing: ${existingMatch.id}`);
+        match = existingMatch;
+      } else {
+        console.log(`[Match] Creating new match record...`);
+        match = await tx.match.create({
+          data: {
+            user1Id: currentUserId,
+            user2Id: receiverId,
+            hackathonId,
+            teamId: team?.id || undefined,
+          },
+        });
+      }
 
       // Create mutual match notifications for both users
       const currentUser = await tx.user.findUnique({
@@ -222,18 +176,20 @@ router.post('/swipes', requiredAuth, async (req: any, res: Response) => {
         data: {
           userId: currentUserId,
           type: 'MATCH',
-          content: `You matched with ${receiverUser?.name || 'someone'} for ${hackathon?.name || 'a hackathon'}!`,
+          content: `You matched with ${receiverUser?.name || 'someone'} for ${hackathonName}!`,
           relatedId: match.id,
-        },
+          actorId: receiverId,
+        } as any,
       });
 
       await tx.notification.create({
         data: {
           userId: receiverId,
           type: 'MATCH',
-          content: `You matched with ${currentUser?.name || 'someone'} for ${hackathon?.name || 'a hackathon'}!`,
+          content: `You matched with ${currentUser?.name || 'someone'} for ${hackathonName}!`,
           relatedId: match.id,
-        },
+          actorId: currentUserId,
+        } as any,
       });
 
       return {
@@ -245,17 +201,168 @@ router.post('/swipes', requiredAuth, async (req: any, res: Response) => {
           name: receiverUser?.name || '',
           image: receiverUser?.image || null,
         },
+        hackathonName,
       };
     });
 
     return res.json(result);
-  } catch (error: any) {
-    // Handle unique constraint violation (already swiped)
-    if (error.code === 'P2002') {
-      return res.status(409).json({ message: 'You have already swiped on this user for this hackathon' });
-    }
+  } catch (error) {
     console.error('Error processing swipe:', error);
     res.status(500).json({ message: 'Error processing swipe' });
+  }
+});
+
+// GET /api/matches
+router.get('/matches', requiredAuth, async (req: any, res: Response) => {
+  try {
+    const currentUserId = req.session.user.id;
+    const matches = await prisma.match.findMany({
+      where: {
+        OR: [
+          { user1Id: currentUserId },
+          { user2Id: currentUserId },
+        ]
+      },
+      include: {
+        user1: {
+          select: {
+            id: true, name: true, image: true, bio: true, title: true,
+            skills: { include: { skill: true } }
+          }
+        },
+        user2: {
+          select: {
+            id: true, name: true, image: true, bio: true, title: true,
+            skills: { include: { skill: true } }
+          }
+        },
+        hackathon: { select: { name: true } },
+        team: { include: { chats: { take: 1 } } }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const formattedMatches = matches.map(m => {
+      const otherUser = m.user1Id === currentUserId ? m.user2 : m.user1;
+      // Find DM chat if no team chat
+      return {
+        id: m.id,
+        hackathonName: m.hackathon?.name || 'Hackathon',
+        matchedUser: otherUser,
+        teamId: m.teamId,
+        createdAt: m.createdAt
+      };
+    });
+
+    res.json(formattedMatches);
+  } catch (error) {
+    console.error('Error fetching matches:', error);
+    res.status(500).json({ message: 'Error fetching matches' });
+  }
+});
+
+// GET /api/matches/:id
+router.get('/matches/:id', requiredAuth, async (req: any, res: Response) => {
+  try {
+    const { id } = req.params;
+    const currentUserId = req.session.user.id;
+
+    const match = await prisma.match.findUnique({
+      where: { id },
+      include: {
+        user1: { select: { id: true, name: true, image: true } },
+        user2: { select: { id: true, name: true, image: true } },
+        hackathon: { select: { name: true } },
+        team: { include: { chats: { select: { id: true }, take: 1 } } }
+      }
+    });
+
+    if (!match) return res.status(404).json({ message: 'Match not found' });
+    
+    const isUser1 = match.user1Id === currentUserId;
+    const isUser2 = match.user2Id === currentUserId;
+    if (!isUser1 && !isUser2) return res.status(403).json({ message: 'Unauthorized' });
+
+    const otherUser = isUser1 ? match.user2 : match.user1;
+    
+    // Find chat
+    let chatId = match.team?.chats[0]?.id;
+    if (!chatId) {
+      const chat = await prisma.chat.findFirst({
+        where: {
+          type: 'DM',
+          members: {
+            every: {
+              userId: { in: [match.user1Id, match.user2Id] }
+            }
+          }
+        },
+        select: { id: true }
+      });
+      chatId = chat?.id;
+    }
+
+    res.json({
+      id: match.id,
+      matchedUser: otherUser,
+      hackathonName: match.hackathon?.name || 'Hackathon',
+      chatId,
+      teamId: match.teamId
+    });
+  } catch (error) {
+    console.error('Error fetching match details:', error);
+    res.status(500).json({ message: 'Error fetching match details' });
+  }
+});
+
+// GET /api/swipes/deck (Global Deck)
+router.get('/swipes/deck', requiredAuth, async (req: any, res: Response) => {
+  try {
+    const currentUserId = req.session.user.id;
+
+    // 1. Get IDs of people the user has already swiped on (Any context)
+    const swipedRecords = await prisma.swipe.findMany({
+      where: { senderId: currentUserId },
+      select: { receiverId: true }
+    });
+    const swipedUserIds = swipedRecords.map(s => s.receiverId);
+
+    // 2. Get prioritized admirers
+    const receivedRightSwipes = await prisma.swipe.findMany({
+      where: { 
+        receiverId: currentUserId,
+        type: 'RIGHT',
+        senderId: { notIn: [currentUserId, ...swipedUserIds] }
+      },
+      select: { senderId: true }
+    });
+    const potentialMatchIds = receivedRightSwipes.map(s => s.senderId);
+
+    const prioritizedUsers = await prisma.user.findMany({
+      where: { id: { in: potentialMatchIds } },
+      select: {
+        id: true, name: true, image: true, bio: true, title: true,
+        college: true, city: true, githubUrl: true, linkedinUrl: true,
+        skills: { include: { skill: true } }
+      }
+    });
+
+    const otherUsers = await prisma.user.findMany({
+      where: {
+        id: { notIn: [currentUserId, ...swipedUserIds, ...potentialMatchIds] }
+      },
+      select: {
+        id: true, name: true, image: true, bio: true, title: true,
+        college: true, city: true, githubUrl: true, linkedinUrl: true,
+        skills: { include: { skill: true } }
+      },
+      take: 20 - prioritizedUsers.length
+    });
+
+    res.json([...prioritizedUsers, ...otherUsers]);
+  } catch (error) {
+    console.error('Error fetching global swipe deck:', error);
+    res.status(500).json({ message: 'Error fetching swipe deck' });
   }
 });
 

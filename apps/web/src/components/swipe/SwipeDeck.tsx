@@ -18,6 +18,7 @@ interface SwipeDeckProps {
   onSwipe: (userId: string, type: 'LEFT' | 'RIGHT') => Promise<SwipeResult>;
   onEmpty: () => void;
   onMatch: (result: SwipeResult) => void;
+  onViewProfile?: (user: SwipeDeckUser) => void;
 }
 
 // Spring config for card at rest (stacked)
@@ -40,14 +41,20 @@ const flyOut = (dir: number) => ({
   config: { friction: 50, tension: 200 },
 });
 
-export default function SwipeDeck({ users, onSwipe, onEmpty, onMatch }: SwipeDeckProps) {
+export default function SwipeDeck({ 
+  users, 
+  onSwipe, 
+  onEmpty, 
+  onMatch,
+  onViewProfile 
+}: SwipeDeckProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const isAnimating = useRef(false);
 
   const [springs, api] = useSprings(users.length, (i: number) => ({
-    ...to(i, 0),
+    ...to(i, currentIndex),
     from: { x: 0, y: -1000, scale: 1.5, rotate: 0, opacity: 0 },
-  }));
+  }), [users.length, currentIndex]);
 
   const triggerSwipe = async (dir: number) => {
     if (isAnimating.current || currentIndex >= users.length) return;
@@ -57,11 +64,10 @@ export default function SwipeDeck({ users, onSwipe, onEmpty, onMatch }: SwipeDec
     const swipeType = dir > 0 ? 'RIGHT' : 'LEFT';
     const nextIndex = currentIndex + 1;
 
-    // Animate card off screen
+    // Animate card off screen and shift others up immediately
     api.start((i: number) => {
       if (i === currentIndex) return flyOut(dir);
-      if (i === nextIndex) return to(i, nextIndex);
-      if (i === nextIndex + 1) return to(i, nextIndex);
+      if (i > currentIndex) return to(i, nextIndex);
       return {};
     });
 
@@ -126,9 +132,9 @@ export default function SwipeDeck({ users, onSwipe, onEmpty, onMatch }: SwipeDec
   }
 
   return (
-    <div className="flex flex-col items-center gap-8">
+    <div className="flex flex-col items-center gap-12 py-8">
       {/* Card Stack */}
-      <div className="relative w-full max-w-sm h-[480px]">
+      <div className="relative w-[400px] h-[580px] perspective-1000">
         {springs.map((style, i) => {
           if (i < currentIndex || i - currentIndex >= 3) return null;
           return (
@@ -138,43 +144,44 @@ export default function SwipeDeck({ users, onSwipe, onEmpty, onMatch }: SwipeDec
               style={style}
               bind={bind}
               isTop={i === currentIndex}
+              onViewProfile={onViewProfile}
             />
           );
         })}
 
         {/* Empty state when all cards swiped */}
         {currentIndex >= users.length && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-            <div className="h-20 w-20 rounded-full bg-zinc-800/50 flex items-center justify-center mb-4">
-              <Heart className="h-8 w-8 text-zinc-600" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 bg-zinc-900/50 border border-dashed border-zinc-800 rounded-[2.5rem]">
+            <div className="h-20 w-20 rounded-full bg-zinc-800 flex items-center justify-center mb-6 border border-zinc-700">
+              <Heart className="h-10 w-10 text-zinc-600" />
             </div>
-            <h3 className="text-lg font-semibold text-zinc-300">All caught up!</h3>
-            <p className="text-sm text-zinc-500 mt-1">No more people to discover right now.</p>
+            <h3 className="text-2xl font-bold text-white mb-2">All Caught Up!</h3>
+            <p className="text-zinc-500">No more potential teammates in this category for now.</p>
           </div>
         )}
       </div>
 
-      {/* Action Buttons */}
+      {/* Action Buttons - Premium Design */}
       {currentIndex < users.length && (
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-10">
           <button
             onClick={() => triggerSwipe(-1)}
             disabled={isAnimating.current}
-            className="h-16 w-16 rounded-full bg-zinc-900 border-2 border-red-500/30 flex items-center justify-center
-                       hover:border-red-500/60 hover:bg-red-500/10 hover:scale-110
-                       active:scale-95 transition-all duration-200 shadow-lg shadow-red-500/5"
+            className="group h-16 w-16 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center
+                       hover:border-red-500/50 hover:bg-red-500/5 hover:scale-110
+                       active:scale-95 transition-all duration-300 shadow-xl"
           >
-            <X className="h-7 w-7 text-red-400" />
+            <X className="h-8 w-8 text-zinc-500 group-hover:text-red-400 transition-colors" />
           </button>
 
           <button
             onClick={() => triggerSwipe(1)}
             disabled={isAnimating.current}
-            className="h-20 w-20 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center
-                       hover:from-emerald-400 hover:to-emerald-500 hover:scale-110 hover:shadow-emerald-500/30
-                       active:scale-95 transition-all duration-200 shadow-lg shadow-emerald-500/20"
+            className="group h-20 w-20 rounded-full bg-indigo-600 flex items-center justify-center
+                       hover:bg-indigo-500 hover:scale-110 hover:shadow-[0_0_30px_rgba(79,70,229,0.4)]
+                       active:scale-95 transition-all duration-300 shadow-xl shadow-indigo-600/20"
           >
-            <Heart className="h-8 w-8 text-white" />
+            <Heart className="h-10 w-10 text-white fill-white/10 group-hover:fill-white/20 transition-all" />
           </button>
         </div>
       )}

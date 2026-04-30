@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { authClient } from '@/lib/auth-client';
 
 export default function Register() {
   const [email, setEmail] = useState('');
@@ -12,9 +13,24 @@ export default function Register() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: better-auth client call
-    alert('Registration mock successful!');
-    router.push('/login');
+    try {
+      const { data, error } = await authClient.signUp.email({
+        email,
+        password,
+        name,
+      });
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+      
+      alert('Registration successful! Please sign in.');
+      router.push('/login');
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred during registration');
+    }
   };
 
   return (

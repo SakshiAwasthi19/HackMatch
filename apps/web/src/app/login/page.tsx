@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { authClient } from '@/lib/auth-client';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -11,9 +12,32 @@ export default function Login() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: better-auth client call
-    alert('Login mock successful!');
-    router.push('/dashboard');
+    try {
+      const { data, error } = await authClient.signIn.email({
+        email,
+        password,
+      });
+      
+      if (error) {
+        const msg = error.message || '';
+        if (msg.toLowerCase().includes('credential') || msg.toLowerCase().includes('user not found')) {
+          alert('User does not exist : Register first');
+        } else {
+          alert(msg || 'An error occurred during login');
+        }
+        return;
+      }
+
+      // Store the session token for authenticated API requests
+      if (data?.token) {
+        localStorage.setItem('bearer_token', data.token);
+      }
+      
+      router.push('/dashboard');
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred during login');
+    }
   };
 
   return (
