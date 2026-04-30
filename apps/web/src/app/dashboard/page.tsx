@@ -26,7 +26,7 @@ export default function Dashboard() {
   const [detailHackathon, setDetailHackathon] = useState<Hackathon | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [preSelectedMatchHackathonId] = useState<string | null>(null);
-  const [matchData, setMatchData] = useState<any>(null);
+  const [matchData, setMatchData] = useState<unknown>(null);
   const [swipeRefreshKey, setSwipeRefreshKey] = useState(0);
 
   useEffect(() => {

@@ -12,7 +12,7 @@ import { apiFetch } from '@/lib/auth-client';
 import { Hackathon, User, HostRequest } from '@/lib/types';
 import { useMemo, useCallback } from 'react';
 
-type AdminTab = 'dashboard' | 'hackathons' | 'users' | 'moderation' | 'analytics' | 'create';
+export type AdminTab = 'dashboard' | 'hackathons' | 'users' | 'moderation' | 'analytics' | 'create';
 
 interface AdminViewProps {
   initialTab?: AdminTab;
