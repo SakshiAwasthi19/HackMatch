@@ -2,11 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { Compass, Zap, Filter, LayoutGrid } from 'lucide-react';
-import SwipeDeck, { SwipeResult } from '@/components/swipe/SwipeDeck';
+import SwipeDeck from '@/components/swipe/SwipeDeck';
 import ProfileModal from '../shared/ProfileModal';
 import { apiFetch } from '@/lib/auth-client';
-
-import { Hackathon, User } from '@/lib/types';
+import { Hackathon, User, SwipeResult, SwipeDeckUser } from '@/lib/types';
 import { useCallback } from 'react';
 
 interface SwipeViewProps {
@@ -17,7 +16,7 @@ interface SwipeViewProps {
 }
 
 export default function SwipeView({ selectedHackathonId: initialHackathonId, user: _user, onRequestHackathonSelection: _onRequestHackathonSelection, onMatch }: SwipeViewProps) {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<SwipeDeckUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewingUser, setViewingUser] = useState<{
@@ -62,7 +61,18 @@ export default function SwipeView({ selectedHackathonId: initialHackathonId, use
       }
 
       const data = await res.json();
-      setUsers(data);
+      setUsers(data.map((u: any) => ({
+        id: u.id,
+        name: u.name,
+        image: u.image || null,
+        bio: u.bio || null,
+        title: u.title || null,
+        college: u.college || null,
+        city: u.city || null,
+        linkedinUrl: u.linkedinUrl || null,
+        githubUrl: u.githubUrl || null,
+        skills: u.skills || []
+      })));
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Failed to load swipe deck');
     } finally {

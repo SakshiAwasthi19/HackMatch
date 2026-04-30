@@ -4,18 +4,7 @@ import React from 'react';
 import { animated } from '@react-spring/web';
 import ProfileCard from '../shared/ProfileCard';
 
-export interface SwipeDeckUser {
-  id: string;
-  name: string;
-  image: string | null;
-  bio: string | null;
-  title: string | null;
-  college: string | null;
-  city: string | null;
-  linkedinUrl: string | null;
-  githubUrl: string | null;
-  skills: { skill: { id: string; name: string } }[];
-}
+import { SwipeDeckUser } from '@/lib/types';
 
 interface SwipeCardProps {
   user: SwipeDeckUser;
@@ -81,4 +70,3 @@ export default function SwipeCard({ user, style, bind, isTop, onViewProfile }: S
     </animated.div>
   );
 }
-

@@ -5,8 +5,8 @@ import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Loader2, RefreshCw, Sparkles } from 'lucide-react';
-import SwipeDeck, { type SwipeResult } from '@/components/swipe/SwipeDeck';
-import { type SwipeDeckUser } from '@/components/swipe/SwipeCard';
+import SwipeDeck from '@/components/swipe/SwipeDeck';
+import { SwipeResult, SwipeDeckUser } from '@/lib/types';
 import MatchOverlay from '@/components/match/MatchOverlay';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -45,7 +45,17 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
         });
         if (!deckRes.ok) throw new Error('Failed to load swipe deck');
         const deckData = await deckRes.json();
-        setUsers(deckData);
+        setUsers(deckData.map((u: any) => ({
+          ...u,
+          image: u.image || null,
+          bio: u.bio || null,
+          title: u.title || null,
+          college: u.college || null,
+          city: u.city || null,
+          linkedinUrl: u.linkedinUrl || null,
+          githubUrl: u.githubUrl || null,
+          skills: u.skills || []
+        })));
         setDeckEmpty(deckData.length === 0);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'An error occurred');

@@ -90,3 +90,16 @@ export interface SwipeResult {
   hackathonName?: string;
   matchedUser?: { id: string; name: string; image: string | null };
 }
+
+export interface SwipeDeckUser {
+  id: string;
+  name: string;
+  image: string | null;
+  bio: string | null;
+  title: string | null;
+  college: string | null;
+  city: string | null;
+  linkedinUrl: string | null;
+  githubUrl: string | null;
+  skills: { skill: { id: string; name: string } }[];
+}
