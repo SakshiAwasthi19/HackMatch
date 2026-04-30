@@ -16,14 +16,14 @@ interface MatchOverlayProps {
 }
 
 // Floating particle for celebration effect
-function Particle({ delay, x, color }: { delay: number; x: number; color: string }) {
+function Particle({ delay, x, color, randomX }: { delay: number; x: number; color: string; randomX: number }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 0, x, scale: 0 }}
       animate={{
         opacity: [0, 1, 1, 0],
         y: [0, -200, -400, -500],
-        x: [x, x + (Math.random() - 0.5) * 100],
+        x: [x, x + randomX],
         scale: [0, 1, 0.8, 0],
         rotate: [0, 180, 360],
       }}
@@ -79,7 +79,8 @@ export default function MatchOverlay({
             <Particle
               key={i}
               delay={i * 0.08}
-              x={(Math.random() - 0.5) * 300}
+              x={(i % 2 === 0 ? 1 : -1) * (i * 15)}
+              randomX={(i % 3 === 0 ? 1 : -1) * 50}
               color={PARTICLE_COLORS[i % PARTICLE_COLORS.length]}
             />
           ))}

@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import React from 'react';
@@ -32,7 +33,11 @@ export default function ProfileCard({
 }: ProfileCardProps) {
   // Normalize skills to string array
   const normalizedSkills = Array.isArray(skills) 
-    ? skills.map(s => typeof s === 'string' ? s : (s as any).skill?.name || (s as any).name)
+    ? skills.map(s => {
+        if (typeof s === 'string') return s;
+        const skillObj = s as { skill?: { name: string }; name?: string };
+        return skillObj.skill?.name || skillObj.name || '';
+      })
     : [];
 
   const initials = name

@@ -18,26 +18,13 @@ interface SwipeViewProps {
   onMatch?: (data: any) => void;
 }
 
-export default function SwipeView({ selectedHackathonId: initialHackathonId, user, onRequestHackathonSelection, onMatch }: SwipeViewProps) {
+export default function SwipeView({ selectedHackathonId: initialHackathonId, user: _user, onRequestHackathonSelection: _onRequestHackathonSelection, onMatch }: SwipeViewProps) {
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewingUser, setViewingUser] = useState<any>(null);
   const [hackathons, setHackathons] = useState<Hackathon[]>([]);
   const [activeHackathonId, setActiveHackathonId] = useState<string | null>(initialHackathonId);
-
-  // Sync with initialHackathonId if it changes from parent
-  useEffect(() => {
-    setActiveHackathonId(initialHackathonId);
-  }, [initialHackathonId]);
-
-  useEffect(() => {
-    fetchHackathons();
-  }, []);
-
-  useEffect(() => {
-    fetchSwipeDeck();
-  }, [activeHackathonId]);
 
   const fetchHackathons = async () => {
     try {
@@ -74,6 +61,21 @@ export default function SwipeView({ selectedHackathonId: initialHackathonId, use
       setLoading(false);
     }
   };
+
+  // Sync with initialHackathonId if it changes from parent
+  useEffect(() => {
+    if (initialHackathonId !== activeHackathonId) {
+      setActiveHackathonId(initialHackathonId);
+    }
+  }, [initialHackathonId, activeHackathonId]);
+
+  useEffect(() => {
+    fetchHackathons();
+  }, []);
+
+  useEffect(() => {
+    fetchSwipeDeck();
+  }, [activeHackathonId]);
 
   const handleSwipe = async (userId: string, type: 'LEFT' | 'RIGHT'): Promise<SwipeResult> => {
     const res = await apiFetch('/api/swipes', {

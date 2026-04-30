@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { useSprings, animated } from '@react-spring/web';
+import { useSprings } from '@react-spring/web';
 import { useDrag } from '@use-gesture/react';
 import { X, Heart } from 'lucide-react';
 import SwipeCard, { type SwipeDeckUser } from './SwipeCard';
@@ -49,6 +49,7 @@ export default function SwipeDeck({
   onViewProfile 
 }: SwipeDeckProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [animating, setAnimating] = useState(false);
   const isAnimating = useRef(false);
 
   const [springs, api] = useSprings(users.length, (i: number) => ({
@@ -59,6 +60,7 @@ export default function SwipeDeck({
   const triggerSwipe = async (dir: number) => {
     if (isAnimating.current || currentIndex >= users.length) return;
     isAnimating.current = true;
+    setAnimating(true);
 
     const user = users[currentIndex];
     const swipeType = dir > 0 ? 'RIGHT' : 'LEFT';
@@ -84,6 +86,7 @@ export default function SwipeDeck({
 
       setCurrentIndex(nextIndex);
       isAnimating.current = false;
+      setAnimating(false);
 
       if (nextIndex >= users.length) {
         onEmpty();
@@ -92,7 +95,7 @@ export default function SwipeDeck({
   };
 
   const bind = useDrag(
-    ({ active, movement: [mx], direction: [xDir], velocity: [vx], cancel }) => {
+    ({ active, movement: [mx], direction: [xDir], velocity: [vx] }) => {
       if (isAnimating.current) return;
 
       const trigger = vx > 0.3 || Math.abs(mx) > 150;
@@ -166,7 +169,7 @@ export default function SwipeDeck({
         <div className="flex items-center gap-10">
           <button
             onClick={() => triggerSwipe(-1)}
-            disabled={isAnimating.current}
+            disabled={animating}
             className="group h-16 w-16 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center
                        hover:border-red-500/50 hover:bg-red-500/5 hover:scale-110
                        active:scale-95 transition-all duration-300 shadow-xl"
@@ -176,7 +179,7 @@ export default function SwipeDeck({
 
           <button
             onClick={() => triggerSwipe(1)}
-            disabled={isAnimating.current}
+            disabled={animating}
             className="group h-20 w-20 rounded-full bg-indigo-600 flex items-center justify-center
                        hover:bg-indigo-500 hover:scale-110 hover:shadow-[0_0_30px_rgba(79,70,229,0.4)]
                        active:scale-95 transition-all duration-300 shadow-xl shadow-indigo-600/20"

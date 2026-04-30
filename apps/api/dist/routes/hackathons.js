@@ -142,7 +142,7 @@ router.get('/:id/swipe-deck', requiredAuth, async (req, res) => {
             where: { senderId: currentUserId, hackathonId },
             select: { receiverId: true }
         });
-        const swipedUserIds = swipedRecords.map(s => s.receiverId);
+        const swipedUserIds = swipedRecords.map((s) => s.receiverId);
         // 2. Get IDs of people who have already swiped RIGHT on current user (Globally OR for this hackathon)
         const receivedRightSwipes = await prisma.swipe.findMany({
             where: {
@@ -152,7 +152,7 @@ router.get('/:id/swipe-deck', requiredAuth, async (req, res) => {
             },
             select: { senderId: true }
         });
-        const potentialMatchIds = receivedRightSwipes.map(s => s.senderId);
+        const potentialMatchIds = receivedRightSwipes.map((s) => s.senderId);
         // 3. Fetch prioritized users (People who liked you first - either globally or for this hackathon)
         const prioritizedUsers = await prisma.user.findMany({
             where: { id: { in: potentialMatchIds } },
@@ -183,7 +183,7 @@ router.get('/:id/swipe-deck', requiredAuth, async (req, res) => {
         });
         const users = [
             ...prioritizedUsers,
-            ...otherInterests.map(i => i.user)
+            ...otherInterests.map((i) => i.user)
         ];
         res.json(users);
     }

@@ -51,15 +51,19 @@ export default function ProfilePage() {
   useEffect(() => {
     if (session?.user) {
       const user = session.user as any;
-      setFormData({
-        bio: user.bio || '',
-        college: user.college || '',
-        city: user.city || '',
-        linkedinUrl: user.linkedinUrl || '',
-        githubUrl: user.githubUrl || '',
+      setFormData(prev => {
+        const next = {
+          bio: user.bio || '',
+          college: user.college || '',
+          city: user.city || '',
+          linkedinUrl: user.linkedinUrl || '',
+          githubUrl: user.githubUrl || '',
+        };
+        // Only update if actually different to prevent cascading renders
+        if (JSON.stringify(prev) === JSON.stringify(next)) return prev;
+        return next;
       });
-      setAvatarPreview(user.image || null);
-      // Skills would need to be fetched separately or included in session
+      setAvatarPreview(prev => prev === user.image ? prev : (user.image || null));
     }
   }, [session]);
 

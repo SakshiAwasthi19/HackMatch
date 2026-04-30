@@ -1,6 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Code2, Compass, LayoutGrid, MessageSquare, Users, LogOut, User, Bell, Zap } from 'lucide-react';
 import { authClient, apiFetch } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
@@ -11,7 +12,14 @@ export type TabType = 'hackathons' | 'swipe' | 'explore' | 'matches' | 'messages
 interface TopNavbarProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
-  user: any;
+  user: {
+    id: string;
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    role?: string | null;
+  } | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onShowMatch?: (data: any) => void;
 }
 
@@ -20,11 +28,21 @@ export default function TopNavbar({ activeTab, onTabChange, user, onShowMatch }:
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
-  const [viewingUser, setViewingUser] = useState<any>(null);
+  const [viewingUser, setViewingUser] = useState<{
+    name: string;
+    image: string | null;
+    title: string | null;
+    bio: string | null;
+    college: string | null;
+    city: string | null;
+    linkedinUrl: string | null;
+    githubUrl: string | null;
+    skills: string[] | { skill: { name: string } }[];
+  } | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const res = await apiFetch('/api/notifications');
       if (res.ok) {
@@ -33,13 +51,13 @@ export default function TopNavbar({ activeTab, onTabChange, user, onShowMatch }:
     } catch (err) {
       console.error('Error fetching notifications:', err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 5000); // Polling every 5s for faster updates
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchNotifications]);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
@@ -99,7 +117,7 @@ export default function TopNavbar({ activeTab, onTabChange, user, onShowMatch }:
     { id: 'messages', label: 'Messages', icon: MessageSquare },
   ];
 
-  if ((user as any)?.role === 'ADMIN') {
+  if (user?.role === 'ADMIN') {
     navItems.push({ id: 'admin', label: 'Admin', icon: Code2 });
   }
 

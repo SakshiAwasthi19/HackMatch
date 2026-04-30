@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import React from 'react';
@@ -26,7 +27,11 @@ export default function ProfileModal({ isOpen, onClose, user }: ProfileModalProp
   if (!user) return null;
 
   const normalizedSkills = Array.isArray(user.skills)
-    ? user.skills.map(s => typeof s === 'string' ? s : (s as any).skill?.name || (s as any).name)
+    ? user.skills.map(s => {
+        if (typeof s === 'string') return s;
+        const skillObj = s as { skill?: { name: string }; name?: string };
+        return skillObj.skill?.name || skillObj.name || '';
+      })
     : [];
 
   const initials = user.name

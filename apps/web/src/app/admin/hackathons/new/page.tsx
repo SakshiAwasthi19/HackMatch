@@ -15,7 +15,6 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { cn } from '@/lib/utils';
 
 export default function AdminNewHackathon() {
   const { data: session, isPending } = useSession();
@@ -82,7 +81,7 @@ export default function AdminNewHackathon() {
   );
 
   // Simple client-side admin check (backend will enforce it)
-  if (!session || (session.user as any).role !== 'ADMIN') {
+  if (!session || (session.user as { role?: string }).role !== 'ADMIN') {
     return (
       <div className="flex flex-col h-screen items-center justify-center bg-black p-4 text-center">
         <AlertCircle className="h-16 w-16 text-red-500 mb-4" />

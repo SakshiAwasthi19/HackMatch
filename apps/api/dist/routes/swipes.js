@@ -217,7 +217,7 @@ router.get('/matches', requiredAuth, async (req, res) => {
             },
             orderBy: { createdAt: 'desc' }
         });
-        const formattedMatches = matches.map(m => {
+        const formattedMatches = matches.map((m) => {
             const otherUser = m.user1Id === currentUserId ? m.user2 : m.user1;
             // Find DM chat if no team chat
             return {
@@ -294,7 +294,7 @@ router.get('/swipes/deck', requiredAuth, async (req, res) => {
             where: { senderId: currentUserId },
             select: { receiverId: true }
         });
-        const swipedUserIds = swipedRecords.map(s => s.receiverId);
+        const swipedUserIds = swipedRecords.map((s) => s.receiverId);
         // 2. Get prioritized admirers
         const receivedRightSwipes = await prisma.swipe.findMany({
             where: {
@@ -304,7 +304,7 @@ router.get('/swipes/deck', requiredAuth, async (req, res) => {
             },
             select: { senderId: true }
         });
-        const potentialMatchIds = receivedRightSwipes.map(s => s.senderId);
+        const potentialMatchIds = receivedRightSwipes.map((s) => s.senderId);
         const prioritizedUsers = await prisma.user.findMany({
             where: { id: { in: potentialMatchIds } },
             select: {

@@ -19,7 +19,9 @@ export interface SwipeDeckUser {
 
 interface SwipeCardProps {
   user: SwipeDeckUser;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   style: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   bind: (...args: any[]) => any;
   isTop: boolean;
   onViewProfile?: (user: SwipeDeckUser) => void;
