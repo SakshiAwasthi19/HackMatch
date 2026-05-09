@@ -38,15 +38,15 @@ const nextConfig: NextConfig = {
   },
   webpack: (config, { isServer, webpack }) => {
     if (isServer) {
-      // Replace animation libraries with server-safe mocks during SSG
-      // to prevent useContext crashes when prerendering /404
+      // Replace animation libraries with server-safe mocks during SSG/SSR
+      // to prevent useContext crashes when prerendering static pages
       config.plugins.push(
         new webpack.NormalModuleReplacementPlugin(
-          /^framer-motion$/,
+          /framer-motion/,
           framerMock
         ),
         new webpack.NormalModuleReplacementPlugin(
-          /^@react-spring\/web$/,
+          /@react-spring/,
           springMock
         )
       );
