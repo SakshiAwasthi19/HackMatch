@@ -7,14 +7,14 @@ import Image from 'next/image';
 
 export interface ProfileModalUser {
   name: string;
-  image: string | null;
-  title: string | null;
-  bio: string | null;
-  college: string | null;
-  city: string | null;
-  linkedinUrl: string | null;
-  githubUrl: string | null;
-  skills: string[] | { skill: { name: string } }[];
+  image?: string | null;
+  title?: string | null;
+  bio?: string | null;
+  college?: string | null;
+  city?: string | null;
+  linkedinUrl?: string | null;
+  githubUrl?: string | null;
+  skills?: string[] | { skill: { name: string } }[];
 }
 
 interface ProfileModalProps {

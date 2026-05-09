@@ -405,8 +405,8 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                                   {s.skill.name}
                                 </span>
                               ))}
-                              {user.skills?.length > 2 && (
-                                <span className="text-[9px] font-bold text-zinc-600">+{user.skills.length - 2}</span>
+                              {(user.skills?.length ?? 0) > 2 && (
+                                <span className="text-[9px] font-bold text-zinc-600">+{(user.skills?.length ?? 0) - 2}</span>
                               )}
                             </div>
                           </td>
@@ -857,8 +857,8 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                                   {s.skill.name}
                                 </span>
                               ))}
-                              {user.skills?.length > 2 && (
-                                <span className="text-[9px] font-bold text-zinc-600">+{user.skills.length - 2}</span>
+                              {(user.skills?.length ?? 0) > 2 && (
+                                <span className="text-[9px] font-bold text-zinc-600">+{(user.skills?.length ?? 0) - 2}</span>
                               )}
                             </div>
                           </td>
