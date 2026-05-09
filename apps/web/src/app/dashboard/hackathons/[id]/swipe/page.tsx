@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, use } from 'react';
-import { useSession } from '@/lib/auth-client';
+import { useSession, apiFetch } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Loader2, RefreshCw, Sparkles } from 'lucide-react';
@@ -9,7 +9,7 @@ import SwipeDeck from '@/components/swipe/SwipeDeck';
 import { SwipeResult, SwipeDeckUser } from '@/lib/types';
 import MatchOverlay from '@/components/match/MatchOverlay';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+// Removed local API_URL constant in favor of apiFetch utility
 
 export default function SwipePage({ params }: { params: Promise<{ id: string }> }) {
   const { id: hackathonId } = use(params);
@@ -32,17 +32,13 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
       setError(null);
       try {
         // Fetch hackathon details
-        const hackRes = await fetch(`${API_URL}/api/hackathons/${hackathonId}`, {
-          credentials: 'include',
-        });
+        const hackRes = await apiFetch(`/api/hackathons/${hackathonId}`);
         if (!hackRes.ok) throw new Error('Failed to load hackathon');
         const hackData = await hackRes.json();
         setHackathon(hackData);
 
         // Fetch swipe deck
-        const deckRes = await fetch(`${API_URL}/api/hackathons/${hackathonId}/swipe-deck`, {
-          credentials: 'include',
-        });
+        const deckRes = await apiFetch(`/api/hackathons/${hackathonId}/swipe-deck`);
         if (!deckRes.ok) throw new Error('Failed to load swipe deck');
         const deckData = await deckRes.json();
         setUsers(deckData.map((u: any) => ({
@@ -68,11 +64,9 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
   }, [hackathonId, session, sessionLoading]);
 
   const handleSwipe = async (userId: string, type: 'LEFT' | 'RIGHT'): Promise<SwipeResult> => {
-    const res = await fetch(`${API_URL}/api/swipes`, {
+    const res = await apiFetch('/api/swipes', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ receiverId: userId, hackathonId, type }),
-      credentials: 'include',
     });
 
     if (!res.ok) {

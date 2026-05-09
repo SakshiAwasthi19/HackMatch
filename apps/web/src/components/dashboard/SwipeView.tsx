@@ -155,8 +155,19 @@ export default function SwipeView({ selectedHackathonId: initialHackathonId, use
           </div>
         ) : error ? (
           <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-center max-w-lg mx-auto">
-            <p>Error loading deck: {error}</p>
-            <button onClick={fetchSwipeDeck} className="mt-4 px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">Try Again</button>
+            <p className="text-lg font-bold mb-2">Deck Loading Failed</p>
+            <p className="text-sm opacity-80">{error}</p>
+            {error.includes('fetch') && (
+              <p className="mt-2 text-xs text-red-400/60 font-medium">
+                Please ensure the backend server is running on port 3001
+              </p>
+            )}
+            <button 
+              onClick={fetchSwipeDeck} 
+              className="mt-6 px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-500/20"
+            >
+              Try Again
+            </button>
           </div>
         ) : users.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center animate-in fade-in zoom-in duration-500 p-6">

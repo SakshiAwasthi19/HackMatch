@@ -180,28 +180,45 @@ router.get('/:id/swipe-deck', requiredAuth, async (req: any, res: Response) => {
     });
 
     // 4. Fetch regular users who are specifically interested in this hackathon
-    const otherInterests = await prisma.hackathonInterest.findMany({
+    const interestedRecords = await prisma.hackathonInterest.findMany({
       where: { 
         hackathonId,
         userId: {
           notIn: [currentUserId, ...swipedUserIds, ...potentialMatchIds]
         }
       },
-      include: {
-        user: {
-          select: {
-            id: true, name: true, image: true, bio: true, title: true,
-            college: true, city: true, linkedinUrl: true, githubUrl: true,
-            skills: { include: { skill: true } }
-          }
+      select: { userId: true }
+    });
+    const interestedUserIds = interestedRecords.map((i: any) => i.userId);
+
+    const interestedUsers = await prisma.user.findMany({
+      where: { id: { in: interestedUserIds } },
+      select: {
+        id: true, name: true, image: true, bio: true, title: true,
+        college: true, city: true, linkedinUrl: true, githubUrl: true,
+        skills: { include: { skill: true } }
+      }
+    });
+
+    // 5. Fetch everyone else (Global matching)
+    const otherUsers = await prisma.user.findMany({
+      where: {
+        id: {
+          notIn: [currentUserId, ...swipedUserIds, ...potentialMatchIds, ...interestedUserIds]
         }
       },
-      take: 20 - prioritizedUsers.length
+      select: {
+        id: true, name: true, image: true, bio: true, title: true,
+        college: true, city: true, linkedinUrl: true, githubUrl: true,
+        skills: { include: { skill: true } }
+      },
+      take: 40 - prioritizedUsers.length - interestedUsers.length
     });
 
     const users = [
       ...prioritizedUsers,
-      ...otherInterests.map((i: any) => i.user)
+      ...interestedUsers,
+      ...otherUsers
     ];
 
     res.json(users);

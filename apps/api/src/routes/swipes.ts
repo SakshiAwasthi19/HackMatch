@@ -27,24 +27,29 @@ router.post('/swipes', requiredAuth, async (req: any, res: Response) => {
     }
 
     // Create or update swipe record
-    await prisma.swipe.upsert({
+    const existingSwipe = await prisma.swipe.findFirst({
       where: {
-        senderId_receiverId_hackathonId: {
-          senderId: currentUserId,
-          receiverId,
-          hackathonId,
-        },
-      },
-      update: {
-        type,
-      },
-      create: {
         senderId: currentUserId,
         receiverId,
-        hackathonId,
-        type,
+        hackathonId: hackathonId || null,
       },
     });
+
+    if (existingSwipe) {
+      await prisma.swipe.update({
+        where: { id: existingSwipe.id },
+        data: { type },
+      });
+    } else {
+      await prisma.swipe.create({
+        data: {
+          senderId: currentUserId,
+          receiverId,
+          hackathonId: hackathonId || null,
+          type,
+        },
+      });
+    }
 
     // LEFT swipe — done
     if (type === 'LEFT') {
@@ -356,7 +361,7 @@ router.get('/swipes/deck', requiredAuth, async (req: any, res: Response) => {
         college: true, city: true, githubUrl: true, linkedinUrl: true,
         skills: { include: { skill: true } }
       },
-      take: 20 - prioritizedUsers.length
+      take: 40 - prioritizedUsers.length
     });
 
     res.json([...prioritizedUsers, ...otherUsers]);

@@ -27,12 +27,12 @@ const to = (i: number, currentIndex: number) => ({
 
 // Spring config for card flying off screen
 const flyOut = (dir: number) => ({
-  x: dir * (window.innerWidth + 200),
-  rotate: dir * 30,
-  scale: 1.1,
+  x: dir * (window.innerWidth + 500),
+  rotate: dir * 45,
+  scale: 1,
   opacity: 0,
   immediate: false,
-  config: { friction: 50, tension: 200 },
+  config: { friction: 60, tension: 150 },
 });
 
 export default function SwipeDeck({ 
@@ -85,7 +85,7 @@ export default function SwipeDeck({
       if (nextIndex >= users.length) {
         onEmpty();
       }
-    }, 300);
+    }, 500);
   };
 
   const bind = useDrag(
