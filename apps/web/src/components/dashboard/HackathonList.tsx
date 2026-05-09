@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, MapPin, Users, Plus, Search, Filter, Heart, Zap, Globe, Cpu, Code, ArrowUpRight } from 'lucide-react';
 import { apiFetch, authClient } from '@/lib/auth-client';
 import Image from 'next/image';
+import { Hackathon } from '@/lib/types';
 
 interface HackathonListProps {
   onSelectHackathon: (id: string) => void;
