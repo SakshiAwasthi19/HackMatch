@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 // Custom Pages Router error page — prevents the auto-generated
 // _error.js from bundling framer-motion and crashing during SSG.
 function CustomError({ statusCode }: { statusCode?: number }) {
@@ -27,7 +29,7 @@ function CustomError({ statusCode }: { statusCode?: number }) {
           ? 'The page you\'re looking for doesn\'t exist.'
           : 'An unexpected error occurred.'}
       </p>
-      <a
+      <Link
         href="/"
         style={{
           marginTop: '2rem',
@@ -40,7 +42,7 @@ function CustomError({ statusCode }: { statusCode?: number }) {
         }}
       >
         Go Home
-      </a>
+      </Link>
     </div>
   );
 }

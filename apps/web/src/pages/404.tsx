@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 // Custom Pages Router 404 — this prevents Next.js from using
 // the auto-generated _error.js (which bundles framer-motion
 // and crashes with useContext during static generation).
@@ -31,7 +33,7 @@ export default function Custom404() {
       <p style={{ color: '#a1a1aa', maxWidth: '28rem', marginTop: '1rem' }}>
         The page you&apos;re looking for doesn&apos;t exist or has been moved.
       </p>
-      <a
+      <Link
         href="/"
         style={{
           marginTop: '2rem',
@@ -45,7 +47,7 @@ export default function Custom404() {
         }}
       >
         Go Home
-      </a>
+      </Link>
     </div>
   );
 }
