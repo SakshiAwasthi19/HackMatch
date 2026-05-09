@@ -15,7 +15,7 @@ interface SwipeViewProps {
   onMatch?: (data: SwipeResult) => void;
 }
 
-export default function SwipeView({ selectedHackathonId: initialHackathonId, user: _user, onRequestHackathonSelection: _onRequestHackathonSelection, onMatch }: SwipeViewProps) {
+export default function SwipeView({ selectedHackathonId: initialHackathonId, onMatch }: SwipeViewProps) {
   const [users, setUsers] = useState<SwipeDeckUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +61,7 @@ export default function SwipeView({ selectedHackathonId: initialHackathonId, use
       }
 
       const data = await res.json();
-      setUsers(data.map((u: any) => ({
+      setUsers(data.map((u: SwipeDeckUser) => ({
         id: u.id,
         name: u.name,
         image: u.image || null,
@@ -82,17 +82,26 @@ export default function SwipeView({ selectedHackathonId: initialHackathonId, use
 
   // Sync with initialHackathonId if it changes from parent
   useEffect(() => {
-    if (initialHackathonId !== activeHackathonId) {
-      setActiveHackathonId(initialHackathonId);
-    }
+    const timer = setTimeout(() => {
+      if (initialHackathonId !== activeHackathonId) {
+        setActiveHackathonId(initialHackathonId);
+      }
+    }, 0);
+    return () => clearTimeout(timer);
   }, [initialHackathonId, activeHackathonId]);
 
   useEffect(() => {
-    fetchHackathons();
+    const timer = setTimeout(() => {
+      void fetchHackathons();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [fetchHackathons]);
 
   useEffect(() => {
-    fetchSwipeDeck();
+    const timer = setTimeout(() => {
+      void fetchSwipeDeck();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [fetchSwipeDeck]);
 
   const handleSwipe = async (userId: string, type: 'LEFT' | 'RIGHT'): Promise<SwipeResult> => {

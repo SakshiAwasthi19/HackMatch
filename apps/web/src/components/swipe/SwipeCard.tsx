@@ -8,8 +8,8 @@ import { SwipeDeckUser } from '@/lib/types';
 
 interface SwipeCardProps {
   user: SwipeDeckUser;
-  style: any;
-  bind: any;
+  style: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  bind: any; // eslint-disable-line @typescript-eslint/no-explicit-any
   isTop: boolean;
   onViewProfile?: (user: SwipeDeckUser) => void;
 }

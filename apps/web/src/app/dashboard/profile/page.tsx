@@ -59,18 +59,21 @@ export default function ProfilePage() {
         githubUrl?: string;
         image?: string;
       };
-      setFormData(prev => {
-        const next = {
-          bio: user.bio || '',
-          college: user.college || '',
-          city: user.city || '',
-          linkedinUrl: user.linkedinUrl || '',
-          githubUrl: user.githubUrl || '',
-        };
-        if (JSON.stringify(prev) === JSON.stringify(next)) return prev;
-        return next;
-      });
-      setAvatarPreview(prev => prev === user.image ? prev : (user.image || null));
+      const timer = setTimeout(() => {
+        setFormData(prev => {
+          const next = {
+            bio: user.bio || '',
+            college: user.college || '',
+            city: user.city || '',
+            linkedinUrl: user.linkedinUrl || '',
+            githubUrl: user.githubUrl || '',
+          };
+          if (JSON.stringify(prev) === JSON.stringify(next)) return prev;
+          return next;
+        });
+        setAvatarPreview(prev => prev === user.image ? prev : (user.image || null));
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [session]);
 

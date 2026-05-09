@@ -159,7 +159,7 @@ export default function HackathonDetailView({ hackathon, onBack, onFindTeam, onT
               to scalable infrastructure. 
             </p>
             <p className="text-lg text-zinc-400 leading-relaxed font-medium">
-              Over three intensive days, you'll have access to state-of-the-art compute resources, exclusive APIs from 
+              Over three intensive days, you&apos;ll have access to state-of-the-art compute resources, exclusive APIs from 
               our partners, and a curated network of mentors who are defining the next era of the internet.
             </p>
           </div>

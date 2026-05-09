@@ -12,9 +12,9 @@ interface HackathonListProps {
 
 export default function HackathonList({ onSelectHackathon, onCreateClick }: HackathonListProps) {
   const { data: session } = authClient.useSession();
-  const isAdmin = (session?.user as any)?.role === 'ADMIN';
+  const isAdmin = (session?.user as { role?: string })?.role === 'ADMIN';
 
-  const [hackathons, setHackathons] = useState<any[]>([]);
+  const [hackathons, setHackathons] = useState<Hackathon[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState('All Events');
@@ -205,6 +205,7 @@ export default function HackathonList({ onSelectHackathon, onCreateClick }: Hack
                   <div className="flex items-center text-[10px] text-zinc-500 font-bold uppercase tracking-tighter">
                     {new Date(hackathon.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} - {new Date(hackathon.endDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
                   </div>
+
                   <div className="text-xs text-zinc-400 font-medium">
                     {hackathon.city || hackathon.location || 'Global Virtual'}
                   </div>
@@ -244,7 +245,7 @@ export default function HackathonList({ onSelectHackathon, onCreateClick }: Hack
           </div>
           <div>
             <h4 className="text-xl font-bold text-white">Host an Event?</h4>
-            <p className="text-zinc-500 text-sm mt-2 max-w-[200px]">Connect with the world's most ambitious builders and designers.</p>
+            <p className="text-zinc-500 text-sm mt-2 max-w-[200px]">Connect with the world&apos;s most ambitious builders and designers.</p>
           </div>
           <button
             disabled={!isAdmin && hasPendingRequest}

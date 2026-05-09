@@ -5,14 +5,11 @@ import {
   Trophy, 
   Calendar, 
   MapPin, 
-  Globe, 
   Users, 
-  Star,
   ExternalLink,
   ChevronRight,
   Loader2,
   Search,
-  Filter
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';

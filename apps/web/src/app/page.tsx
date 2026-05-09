@@ -108,7 +108,7 @@ export default function Home() {
               <Zap className="h-6 w-6 text-indigo-400" />
             </div>
             <h3 className="text-xl font-bold mb-3">Tinder for Hackers</h3>
-            <p className="text-zinc-400 leading-relaxed">Swipe through developer profiles. Right swipe if you want to team up. It's a match when the interest is mutual.</p>
+            <p className="text-zinc-400 leading-relaxed">Swipe through developer profiles. Right swipe if you want to team up. It&apos;s a match when the interest is mutual.</p>
           </div>
           <div className="bg-zinc-900/50 border border-zinc-800/50 p-8 rounded-3xl backdrop-blur-sm">
             <div className="h-12 w-12 bg-purple-500/10 rounded-2xl flex items-center justify-center mb-6">

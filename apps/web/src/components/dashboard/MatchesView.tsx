@@ -9,13 +9,19 @@ import { useRouter } from 'next/navigation';
 import { User, Match } from '@/lib/types';
 import { useCallback } from 'react';
 
+interface DisplayMatch {
+  id: string;
+  matchedUser: User;
+  hackathonName: string;
+}
+
 interface MatchesViewProps {
   initialHackathonId?: string | null;
 }
 
 export default function MatchesView({ initialHackathonId }: MatchesViewProps) {
   const router = useRouter();
-  const [matches, setMatches] = useState<any[]>([]);
+  const [matches, setMatches] = useState<DisplayMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewingUser, setViewingUser] = useState<User | null>(null);
 
@@ -37,7 +43,10 @@ export default function MatchesView({ initialHackathonId }: MatchesViewProps) {
   }, [initialHackathonId]);
 
   useEffect(() => {
-    fetchMatches();
+    const timer = setTimeout(() => {
+      void fetchMatches();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [fetchMatches]);
 
   if (loading) {

@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Plus, Calendar, MapPin, Globe, Loader2, CheckCircle2, AlertCircle,
+  Plus, Globe, Loader2, CheckCircle2, AlertCircle,
   LayoutGrid, Users, ShieldAlert, BarChart3, Search, Filter, 
-  Edit2, Trash2, MoreVertical, ExternalLink, Shield, ArrowUpRight,
+  Edit2, Trash2, Shield, ArrowUpRight,
   ChevronLeft, ChevronRight, X
 } from 'lucide-react';
 import Image from 'next/image';
@@ -82,7 +82,10 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
   }, []);
 
   useEffect(() => {
-    fetchData();
+    const init = async () => {
+      await fetchData();
+    };
+    init();
   }, [fetchData]);
 
   const handleCreateHackathon = async (e: React.FormEvent) => {
@@ -158,7 +161,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
     }
   };
 
-  const now = useMemo(() => Date.now(), []);
+  const [now] = useState(() => Date.now());
 
   return (
     <div className="flex h-[calc(100vh-120px)] bg-[#050507] rounded-[2.5rem] overflow-hidden border border-zinc-800/50 shadow-2xl">

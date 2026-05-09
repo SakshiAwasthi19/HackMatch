@@ -9,6 +9,10 @@ import SwipeDeck from '@/components/swipe/SwipeDeck';
 import { SwipeResult, SwipeDeckUser } from '@/lib/types';
 import MatchOverlay from '@/components/match/MatchOverlay';
 
+interface Hackathon {
+  name: string;
+}
+
 // Removed local API_URL constant in favor of apiFetch utility
 
 export default function SwipePage({ params }: { params: Promise<{ id: string }> }) {
@@ -16,7 +20,7 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
   const { data: session, isPending: sessionLoading } = useSession();
   const router = useRouter();
 
-  const [hackathon, setHackathon] = useState<{ name: string } | null>(null);
+  const [hackathon, setHackathon] = useState<Hackathon | null>(null);
   const [users, setUsers] = useState<SwipeDeckUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,25 +38,32 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
         // Fetch hackathon details
         const hackRes = await apiFetch(`/api/hackathons/${hackathonId}`);
         if (!hackRes.ok) throw new Error('Failed to load hackathon');
-        const hackData = await hackRes.json();
-        setHackathon(hackData);
+        const hackData: Hackathon = await hackRes.json();
+        
+        setTimeout(() => setHackathon(hackData), 0);
 
         // Fetch swipe deck
         const deckRes = await apiFetch(`/api/hackathons/${hackathonId}/swipe-deck`);
         if (!deckRes.ok) throw new Error('Failed to load swipe deck');
         const deckData = await deckRes.json();
-        setUsers(deckData.map((u: any) => ({
-          ...u,
-          image: u.image || null,
-          bio: u.bio || null,
-          title: u.title || null,
-          college: u.college || null,
-          city: u.city || null,
-          linkedinUrl: u.linkedinUrl || null,
-          githubUrl: u.githubUrl || null,
-          skills: u.skills || []
-        })));
-        setDeckEmpty(deckData.length === 0);
+        
+        setTimeout(() => {
+          setUsers(deckData.map((u: SwipeDeckUser) => ({
+            ...u,
+            image: u.image || null,
+            bio: u.bio || null,
+            title: u.title || null,
+            college: u.college || null,
+            city: u.city || null,
+            linkedinUrl: u.linkedinUrl || null,
+            githubUrl: u.githubUrl || null,
+            skills: u.skills?.map((s: { skill?: { name: string }; name?: string } | string) => {
+              if (typeof s === 'string') return s;
+              return s.skill?.name || s.name || '';
+            }).filter(Boolean) || []
+          })));
+          setDeckEmpty(deckData.length === 0);
+        }, 0);
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -60,7 +71,10 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
       }
     };
 
-    fetchData();
+    const timer = setTimeout(() => {
+      void fetchData();
+    }, 0);
+    return () => clearTimeout(timer);
   }, [hackathonId, session, sessionLoading]);
 
   const handleSwipe = async (userId: string, type: 'LEFT' | 'RIGHT'): Promise<SwipeResult> => {

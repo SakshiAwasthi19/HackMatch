@@ -72,7 +72,7 @@ export default function ProfileView() {
           setCity(data.city || '');
           setLinkedinUrl(data.linkedinUrl || '');
           setGithubUrl(data.githubUrl || '');
-          setSkills(data.skills?.map((s: any) => {
+          setSkills(data.skills?.map((s: { skill?: { name: string }; name?: string } | string) => {
             if (typeof s === 'string') return s;
             return s.skill?.name || s.name || '';
           }).filter(Boolean) || []);
@@ -91,8 +91,11 @@ export default function ProfileView() {
         setEmail(session.user.email || '');
         if (session.user.image) setAvatarPreview(session.user.image);
       };
-      updateFromSession();
-      fetchProfile();
+      const timer = setTimeout(() => {
+        updateFromSession();
+        void fetchProfile();
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [session]);
 
