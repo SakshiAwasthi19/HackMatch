@@ -39,7 +39,7 @@ export default function HackathonDiscovery() {
   useEffect(() => {
     fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/hackathons`)
       .then(res => res.json())
-      .then(data => {
+      .then((data: Hackathon[]) => {
         setHackathons(data);
         setLoading(false);
       })

@@ -6,7 +6,7 @@ import { apiFetch } from '@/lib/auth-client';
 import ProfileModal from '../shared/ProfileModal';
 import ProfileCard from '../shared/ProfileCard';
 import { useRouter } from 'next/navigation';
-import { User, Match } from '@/lib/types';
+import { User } from '@/lib/types';
 import { useCallback } from 'react';
 
 interface DisplayMatch {

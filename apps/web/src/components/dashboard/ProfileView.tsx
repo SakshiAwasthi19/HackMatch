@@ -2,13 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import {
-  User, Mail, FileText, GraduationCap, MapPin,
+  User, GraduationCap, MapPin,
   Linkedin, Github, X, Plus, Camera, Loader2,
-  ArrowRight, ArrowLeft, CheckCircle2, Briefcase, Eye
+  ArrowRight, ArrowLeft, CheckCircle2, Briefcase
 } from 'lucide-react';
 import ProfileCard from '../shared/ProfileCard';
-import { User as UserType, UserSkill } from '@/lib/types';
-import { useCallback } from 'react';
 import Image from 'next/image';
 import { authClient, apiFetch } from '@/lib/auth-client';
 
@@ -164,8 +162,6 @@ export default function ProfileView() {
     s => !skills.includes(s) && s.toLowerCase().includes(skillInput.toLowerCase())
   ).slice(0, 6);
 
-  // Initials for avatar fallback
-  const initials = name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?';
 
   if (loading) {
     return (

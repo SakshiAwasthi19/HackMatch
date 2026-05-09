@@ -1,17 +1,15 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Compass, Zap, Filter, LayoutGrid } from 'lucide-react';
+import { Zap, Filter } from 'lucide-react';
 import SwipeDeck from '@/components/swipe/SwipeDeck';
 import ProfileModal from '../shared/ProfileModal';
 import { apiFetch } from '@/lib/auth-client';
-import { Hackathon, User, SwipeResult, SwipeDeckUser } from '@/lib/types';
+import { Hackathon, SwipeResult, SwipeDeckUser } from '@/lib/types';
 import { useCallback } from 'react';
 
 interface SwipeViewProps {
   selectedHackathonId: string | null;
-  user: { id: string; role?: string } | null;
-  onRequestHackathonSelection: () => void;
   onMatch?: (data: SwipeResult) => void;
 }
 

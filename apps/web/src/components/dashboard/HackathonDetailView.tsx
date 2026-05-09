@@ -2,9 +2,9 @@
 
 import React from 'react';
 import { 
-  Calendar, MapPin, Globe, ArrowUpRight, Users, 
-  ChevronRight, ArrowLeft, Heart, Share2, Info,
-  Trophy, Lightbulb, Users2, HelpCircle, ExternalLink
+  Globe, 
+  ChevronRight, ArrowLeft, Heart, Share2,
+  Trophy, Lightbulb, Users2, ExternalLink
 } from 'lucide-react';
 
 import { Hackathon } from '@/lib/types';
@@ -36,7 +36,6 @@ export default function HackathonDetailView({ hackathon, onBack, onFindTeam, onT
     month: 'short', 
     day: 'numeric' 
   }) : 'TBA';
-  const fullDateStr = hackathon.startDate ? `${startDateStr} - ${endDateStr}, ${new Date(hackathon.startDate).getFullYear()}` : 'Date TBA';
 
   return (
     <div className="space-y-12 animate-in fade-in duration-700">

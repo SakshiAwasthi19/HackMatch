@@ -10,7 +10,7 @@ import {
 import Image from 'next/image';
 import { apiFetch } from '@/lib/auth-client';
 import { Hackathon, User, HostRequest, AdminTab } from '@/lib/types';
-import { useMemo, useCallback } from 'react';
+import { useCallback } from 'react';
 
 
 
@@ -408,8 +408,8 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                                   {s.skill.name}
                                 </span>
                               ))}
-                              {(user.skills?.length ?? 0) > 2 && (
-                                <span className="text-[9px] font-bold text-zinc-600">+{(user.skills?.length ?? 0) - 2}</span>
+                              {user.skills && user.skills.length > 2 && (
+                                <span className="text-[9px] font-bold text-zinc-600">+{user.skills.length - 2}</span>
                               )}
                             </div>
                           </td>

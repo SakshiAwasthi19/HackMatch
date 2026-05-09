@@ -14,7 +14,7 @@ import AdminView from '@/components/dashboard/AdminView';
 import HackathonDetailView from '@/components/dashboard/HackathonDetailView';
 import { apiFetch } from '@/lib/auth-client';
 import MatchOverlay from '@/components/match/MatchOverlay';
-import { Hackathon, Match, AdminTab, SwipeResult } from '@/lib/types';
+import { Hackathon, AdminTab, SwipeResult } from '@/lib/types';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -127,8 +127,6 @@ export default function Dashboard() {
               <SwipeView 
                 key={`swipe-${swipeRefreshKey}`}
                 selectedHackathonId={selectedHackathonId} 
-                user={session.user}
-                onRequestHackathonSelection={() => setActiveTab('hackathons')}
                 onMatch={(data) => setMatchData(data)}
               />
             )}

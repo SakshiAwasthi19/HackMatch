@@ -45,7 +45,7 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
         // Fetch swipe deck
         const deckRes = await apiFetch(`/api/hackathons/${hackathonId}/swipe-deck`);
         if (!deckRes.ok) throw new Error('Failed to load swipe deck');
-        const deckData = await deckRes.json();
+        const deckData: SwipeDeckUser[] = await deckRes.json();
         
         setTimeout(() => {
           setUsers(deckData.map((u: SwipeDeckUser) => ({
@@ -84,7 +84,7 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
     });
 
     if (!res.ok) {
-      const data = await res.json();
+      const data: { message?: string } = await res.json();
       throw new Error(data.message || 'Swipe failed');
     }
 

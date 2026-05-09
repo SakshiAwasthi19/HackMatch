@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Calendar, MapPin, Users, Plus, Search, Filter, Heart, Zap, Globe, Cpu, Code, ArrowUpRight } from 'lucide-react';
+import { Plus, Search, Filter, Heart, Zap, ArrowUpRight } from 'lucide-react';
 import { apiFetch, authClient } from '@/lib/auth-client';
 import Image from 'next/image';
 import { Hackathon } from '@/lib/types';
@@ -17,7 +17,7 @@ export default function HackathonList({ onSelectHackathon, onCreateClick }: Hack
 
   const [hackathons, setHackathons] = useState<Hackathon[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState('All Events');
   const [searchQuery, setSearchQuery] = useState('');
   const [hasPendingRequest, setHasPendingRequest] = useState(false);
@@ -266,7 +266,7 @@ export default function HackathonList({ onSelectHackathon, onCreateClick }: Hack
                   } else {
                     alert('Failed to submit request. You might already have a pending request.');
                   }
-                } catch (err) {
+                } catch {
                   alert('Error submitting request.');
                 }
               }
