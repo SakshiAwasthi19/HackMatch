@@ -4,6 +4,9 @@ import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+const framerMock = path.resolve(__dirname, 'src/lib/framer-motion-mock.js');
+const springMock = path.resolve(__dirname, 'src/lib/react-spring-mock.js');
+
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
@@ -33,11 +36,19 @@ const nextConfig: NextConfig = {
       }
     ],
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, webpack }) => {
     if (isServer) {
-      config.resolve.alias['framer-motion'] = path.resolve(
-        __dirname,
-        'src/lib/framer-motion-mock.js'
+      // Replace animation libraries with server-safe mocks during SSG
+      // to prevent useContext crashes when prerendering /404
+      config.plugins.push(
+        new webpack.NormalModuleReplacementPlugin(
+          /^framer-motion$/,
+          framerMock
+        ),
+        new webpack.NormalModuleReplacementPlugin(
+          /^@react-spring\/web$/,
+          springMock
+        )
       );
     }
     return config;
