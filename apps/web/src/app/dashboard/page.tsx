@@ -136,7 +136,11 @@ export default function Dashboard() {
             )}
 
             {activeTab === 'matches' && (
-              <MatchesView key={preSelectedMatchHackathonId || 'default'} initialHackathonId={preSelectedMatchHackathonId} />
+              <MatchesView 
+                key={preSelectedMatchHackathonId || 'default'} 
+                initialHackathonId={preSelectedMatchHackathonId} 
+                onTabChange={setActiveTab}
+              />
             )}
 
             {activeTab === 'messages' && (

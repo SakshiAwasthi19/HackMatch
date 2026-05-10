@@ -35,6 +35,7 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
     }
 
     return fetch(`${apiUrl}${path}`, {
+        cache: 'no-store', // Prevent aggressive Next.js/Browser GET caching
         ...options,
         credentials: "include", // Required for cross-origin cookie auth
         headers: {

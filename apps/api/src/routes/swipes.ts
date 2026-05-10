@@ -97,39 +97,52 @@ router.post('/swipes', requiredAuth, async (req: any, res: Response) => {
 
     // ── MUTUAL MATCH ── Atomic transaction ──────────
     const result = await prisma.$transaction(async (tx: any) => {
-      // Check existing team memberships for this hackathon
-      const senderTeam = await tx.teamMember.findFirst({
-        where: { userId: currentUserId, team: { hackathonId } },
-        include: { team: true },
-      });
+      let senderTeam: any = null;
+      let receiverTeam: any = null;
 
-      const receiverTeam = await tx.teamMember.findFirst({
-        where: { userId: receiverId, team: { hackathonId } },
-        include: { team: true },
-      });
+      if (hackathonId) {
+        // Check existing team memberships for this hackathon
+        senderTeam = await tx.teamMember.findFirst({
+          where: { userId: currentUserId, team: { hackathonId } },
+          include: { team: true },
+        });
+
+        receiverTeam = await tx.teamMember.findFirst({
+          where: { userId: receiverId, team: { hackathonId } },
+          include: { team: true },
+        });
+      }
+
 
       let team: any = null;
       let chat: any;
 
-      if (!senderTeam && !receiverTeam) {
-        // Case 1: Neither in a team → create new Team + GROUP Chat
-        team = await tx.team.create({
-          data: { hackathonId },
-        });
+      if (hackathonId) {
+        if (!senderTeam && !receiverTeam) {
+          // Case 1: Neither in a team → create new Team + GROUP Chat
+          team = await tx.team.create({
+            data: { hackathonId },
+          });
 
-        await tx.teamMember.create({
-          data: { teamId: team.id, userId: currentUserId, role: 'LEADER' },
-        });
+          await tx.teamMember.create({
+            data: { teamId: team.id, userId: currentUserId, role: 'LEADER' },
+          });
 
-        await tx.teamMember.create({
-          data: { teamId: team.id, userId: receiverId, role: 'MEMBER' },
-        });
+          await tx.teamMember.create({
+            data: { teamId: team.id, userId: receiverId, role: 'MEMBER' },
+          });
 
-        chat = await tx.chat.create({
-          data: { type: 'GROUP', teamId: team.id },
-        });
+          chat = await tx.chat.create({
+            data: { type: 'GROUP', teamId: team.id },
+          });
+        } else {
+          // Case 2: One or both already in a team → create DM Chat only
+          chat = await tx.chat.create({
+            data: { type: 'DM' },
+          });
+        }
       } else {
-        // Case 2: One or both already in a team → create DM Chat only
+        // Global Explore Match → Create DM only
         chat = await tx.chat.create({
           data: { type: 'DM' },
         });

@@ -17,9 +17,10 @@ interface DisplayMatch {
 
 interface MatchesViewProps {
   initialHackathonId?: string | null;
+  onTabChange: (tab: any) => void;
 }
 
-export default function MatchesView({ initialHackathonId }: MatchesViewProps) {
+export default function MatchesView({ initialHackathonId, onTabChange }: MatchesViewProps) {
   const router = useRouter();
   const [matches, setMatches] = useState<DisplayMatch[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,7 +106,7 @@ export default function MatchesView({ initialHackathonId }: MatchesViewProps) {
 
                 <div className="mt-4 flex gap-3">
                    <button 
-                     onClick={() => router.push(`/dashboard/messages`)}
+                     onClick={() => onTabChange('messages')}
                      className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2"
                    >
                      <MessageCircle className="h-4 w-4" />

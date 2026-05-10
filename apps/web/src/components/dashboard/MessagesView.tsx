@@ -43,7 +43,16 @@ export default function MessagesView() {
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const res = await apiFetch('/api/chat');
+        // Add cache-busting timestamp to prevent browser from returning stale empty arrays
+        const res = await apiFetch(`/api/chat?t=${Date.now()}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        });
+        
         if (res.ok) {
           const data = await res.json();
           setChats(data);
