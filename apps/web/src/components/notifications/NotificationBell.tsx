@@ -41,7 +41,7 @@ export function NotificationBell() {
     const channel = supabase.channel(`notifications:${session.user.id}`);
     
     channel
-      .on("broadcast", { event: "new_notification" }, (payload) => {
+      .on("broadcast", { event: "new_notification" }, (payload: any) => {
         const newNotif = payload.payload as Notification;
         setNotifications((prev) => [newNotif, ...prev]);
       })

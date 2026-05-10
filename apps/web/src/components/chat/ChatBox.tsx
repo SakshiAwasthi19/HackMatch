@@ -83,7 +83,7 @@ export function ChatBox({ chatId, currentUser }: ChatBoxProps) {
     const channel = supabase.channel(`chat:${chatId}`);
     
     channel
-      .on("broadcast", { event: "new_message" }, (payload) => {
+      .on("broadcast", { event: "new_message" }, (payload: any) => {
         const newMessage = payload.payload as ChatMessage;
         setMessages((prev) => {
           // Check if message already exists (we might have just sent it)

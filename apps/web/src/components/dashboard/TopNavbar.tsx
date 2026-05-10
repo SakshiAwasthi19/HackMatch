@@ -68,7 +68,7 @@ export default function TopNavbar({ activeTab, onTabChange, user, onShowMatch }:
     let channel: any;
     if (user?.id) {
       channel = supabase.channel(`notifications:${user.id}`);
-      channel.on("broadcast", { event: "new_notification" }, (payload) => {
+      channel.on("broadcast", { event: "new_notification" }, (payload: any) => {
         const newNotif = payload.payload as NotificationType;
         setNotifications((prev) => [newNotif, ...prev]);
       }).subscribe();
