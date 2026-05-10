@@ -3,14 +3,31 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { bearer } from "better-auth/plugins";
 import { prisma } from "./db.js";
 
+const isProduction = process.env.NODE_ENV === "production";
+
 export const auth = betterAuth({
-    trustedOrigins: [process.env.FRONTEND_URL || "http://localhost:3000"],
+    trustedOrigins: [
+        "http://localhost:3000",
+        process.env.FRONTEND_URL!,
+    ].filter(Boolean),
+    baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3001",
     database: prismaAdapter(prisma, {
         provider: "postgresql",
     }),
     plugins: [bearer()],
     emailAndPassword: {  
         enabled: true
+    },
+    advanced: {
+        crossSubDomainCookies: {
+            enabled: false,
+        },
+        defaultCookieAttributes: {
+            secure: isProduction,
+            httpOnly: true,
+            sameSite: isProduction ? "none" : "lax", // "none" required for cross-origin cookies
+            path: "/",
+        },
     },
     databaseHooks: {
         user: {
