@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { prisma } from '../db';
-import { auth } from '../auth';
+import { prisma } from '../db.js';
+import { auth } from '../auth.js';
 const router = Router();
 // Middleware to inject session
 const optionalAuth = async (req, res, next) => {

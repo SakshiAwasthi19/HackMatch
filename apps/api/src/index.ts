@@ -14,14 +14,14 @@ app.use(express.json());
 app.use(morgan('dev'));
 
 import { toNodeHandler } from "better-auth/node";
-import { auth } from "./auth";
-import { lastActiveMiddleware } from "./middlewares/lastActive";
-import profileRouter from "./routes/profile";
-import adminRouter from "./routes/admin";
-import hackathonRouter from "./routes/hackathons";
-import swipeRouter from "./routes/swipes";
-import teamRouter from "./routes/teams";
-import notificationsRouter from "./routes/notifications";
+import { auth } from "./auth.js";
+import { lastActiveMiddleware } from "./middlewares/lastActive.js";
+import profileRouter from "./routes/profile.js";
+import adminRouter from "./routes/admin.js";
+import hackathonRouter from "./routes/hackathons.js";
+import swipeRouter from "./routes/swipes.js";
+import teamRouter from "./routes/teams.js";
+import notificationsRouter from "./routes/notifications.js";
 
 app.all("/api/auth/*", toNodeHandler(auth));
 app.use(lastActiveMiddleware);

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { prisma } from '../db';
+import { prisma } from '../db.js';
 
 export const lastActiveMiddleware = async (req: Request, res: Response, next: NextFunction) => {
   // If user is authenticated via Better Auth (req.user set elsewhere), update lastActiveAt

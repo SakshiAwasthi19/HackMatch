@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { prisma } from '../db';
-import { auth } from '../auth';
-import { uploadAvatar } from '../lib/storage';
+import { prisma } from '../db.js';
+import { auth } from '../auth.js';
+import { uploadAvatar } from '../lib/storage.js';
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 // GET current user's profile

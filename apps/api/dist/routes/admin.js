@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { prisma } from '../db';
-import { requireAdmin } from '../middlewares/requireAdmin';
+import { prisma } from '../db.js';
+import { requireAdmin } from '../middlewares/requireAdmin.js';
 import multer from 'multer';
-import { uploadAvatar as uploadToStorage } from '../lib/storage';
-import { auth } from '../auth';
+import { uploadAvatar as uploadToStorage } from '../lib/storage.js';
+import { auth } from '../auth.js';
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 // Create Hackathon
