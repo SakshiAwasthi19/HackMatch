@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Code2, Compass, LayoutGrid, MessageSquare, Users, LogOut, User, Bell, Zap } from 'lucide-react';
 import Image from 'next/image';
 import { authClient, apiFetch } from '@/lib/auth-client';
+import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import ProfileModal from '../shared/ProfileModal';
 import { Notification as NotificationType, SwipeResult } from '@/lib/types';
@@ -64,15 +65,22 @@ export default function TopNavbar({ activeTab, onTabChange, user, onShowMatch }:
       initialFetch();
     }
     
-    const interval = setInterval(() => {
-      if (isMounted) fetchNotifications();
-    }, 5000); 
+    let channel: any;
+    if (user?.id) {
+      channel = supabase.channel(`notifications:${user.id}`);
+      channel.on("broadcast", { event: "new_notification" }, (payload) => {
+        const newNotif = payload.payload as NotificationType;
+        setNotifications((prev) => [newNotif, ...prev]);
+      }).subscribe();
+    }
     
     return () => {
       isMounted = false;
-      clearInterval(interval);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
-  }, [fetchNotifications]);
+  }, [fetchNotifications, user?.id]);
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
