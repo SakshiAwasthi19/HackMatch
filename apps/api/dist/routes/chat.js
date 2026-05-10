@@ -37,6 +37,60 @@ const ensureChatMember = async (req, res, next) => {
         return res.status(500).json({ error: 'Internal Server Error' });
     }
 };
+// GET /api/chat - List all chats for the current user
+router.get('/', requiredAuth, async (req, res) => {
+    try {
+        const userId = req.user?.id;
+        if (!userId)
+            return res.status(401).json({ error: 'Unauthorized' });
+        const chats = await prisma.chat.findMany({
+            where: {
+                members: {
+                    some: {
+                        userId: userId
+                    }
+                }
+            },
+            include: {
+                members: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                image: true
+                            }
+                        }
+                    }
+                },
+                team: {
+                    select: {
+                        id: true,
+                        name: true,
+                        hackathon: {
+                            select: {
+                                id: true,
+                                name: true
+                            }
+                        }
+                    }
+                },
+                messages: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 1
+                }
+            },
+            orderBy: {
+                updatedAt: 'desc'
+            }
+        });
+        return res.json(chats);
+    }
+    catch (error) {
+        console.error('Error fetching user chats:', error);
+        return res.status(500).json({ error: 'Failed to fetch chats' });
+    }
+});
 router.use('/:chatId', requiredAuth, ensureChatMember);
 // GET /api/chat/:chatId/messages
 router.get('/:chatId/messages', async (req, res) => {

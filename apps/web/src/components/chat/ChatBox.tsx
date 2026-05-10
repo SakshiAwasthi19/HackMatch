@@ -39,7 +39,7 @@ export function ChatBox({ chatId, currentUser }: ChatBoxProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  const fetchMessages = async (cursor?: string) => {
+  const fetchMessages = React.useCallback(async (cursor?: string) => {
     try {
       const url = cursor 
         ? `/api/chat/${chatId}/messages?cursor=${cursor}`
@@ -68,14 +68,9 @@ export function ChatBox({ chatId, currentUser }: ChatBoxProps) {
       setLoading(false);
       setLoadingMore(false);
     }
-  };
+  }, [chatId]);
 
   useEffect(() => {
-    // Reset state when chatId changes
-    setMessages([]);
-    setLoading(true);
-    setHasMore(true);
-    
     // Initial fetch
     fetchMessages();
 
@@ -83,7 +78,7 @@ export function ChatBox({ chatId, currentUser }: ChatBoxProps) {
     const channel = supabase.channel(`chat:${chatId}`);
     
     channel
-      .on("broadcast", { event: "new_message" }, (payload: any) => {
+      .on("broadcast", { event: "new_message" }, (payload: { payload: unknown }) => {
         const newMessage = payload.payload as ChatMessage;
         setMessages((prev) => {
           // Check if message already exists (we might have just sent it)
@@ -96,7 +91,8 @@ export function ChatBox({ chatId, currentUser }: ChatBoxProps) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [chatId]);
+  }, [chatId, fetchMessages]);
+
 
   // Scroll to bottom when new messages arrive (if we were already at the bottom)
   useEffect(() => {

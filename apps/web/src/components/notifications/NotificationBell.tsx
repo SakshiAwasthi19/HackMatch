@@ -4,7 +4,6 @@ import React, { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { apiFetch, useSession } from "@/lib/auth-client";
-import Link from "next/link";
 
 interface Notification {
   id: string;
@@ -41,7 +40,7 @@ export function NotificationBell() {
     const channel = supabase.channel(`notifications:${session.user.id}`);
     
     channel
-      .on("broadcast", { event: "new_notification" }, (payload: any) => {
+      .on("broadcast", { event: "new_notification" }, (payload: { payload: unknown }) => {
         const newNotif = payload.payload as Notification;
         setNotifications((prev) => [newNotif, ...prev]);
       })

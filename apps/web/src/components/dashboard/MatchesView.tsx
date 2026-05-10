@@ -5,7 +5,6 @@ import { Heart, Sparkles, MessageCircle, Info } from 'lucide-react';
 import { apiFetch } from '@/lib/auth-client';
 import ProfileModal from '../shared/ProfileModal';
 import ProfileCard from '../shared/ProfileCard';
-import { useRouter } from 'next/navigation';
 import { User } from '@/lib/types';
 import { useCallback } from 'react';
 
@@ -17,11 +16,10 @@ interface DisplayMatch {
 
 interface MatchesViewProps {
   initialHackathonId?: string | null;
-  onTabChange: (tab: any) => void;
+  onTabChange: (tab: string) => void;
 }
 
 export default function MatchesView({ initialHackathonId, onTabChange }: MatchesViewProps) {
-  const router = useRouter();
   const [matches, setMatches] = useState<DisplayMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewingUser, setViewingUser] = useState<User | null>(null);

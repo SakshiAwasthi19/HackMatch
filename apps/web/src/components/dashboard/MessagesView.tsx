@@ -96,8 +96,6 @@ export default function MessagesView() {
     );
   }
 
-  const selectedChat = chats.find(c => c.id === selectedChatId);
-
   return (
     <div className="flex h-[calc(100vh-8rem)] bg-zinc-950 rounded-2xl border border-white/5 overflow-hidden animate-in fade-in duration-500 shadow-2xl">
       {/* Sidebar - Chat List */}
