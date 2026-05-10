@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Heart, Sparkles, MessageCircle, Info } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '@/lib/auth-client';
 import ProfileModal from '../shared/ProfileModal';
 import ProfileCard from '../shared/ProfileCard';
 import { User } from '@/lib/types';
-import { useCallback } from 'react';
+import { TabType } from './TopNavbar';
 
 interface DisplayMatch {
   id: string;
@@ -16,7 +15,7 @@ interface DisplayMatch {
 
 interface MatchesViewProps {
   initialHackathonId?: string | null;
-  onTabChange: (tab: string) => void;
+  onTabChange: (tab: TabType) => void;
 }
 
 export default function MatchesView({ initialHackathonId, onTabChange }: MatchesViewProps) {
@@ -28,105 +27,100 @@ export default function MatchesView({ initialHackathonId, onTabChange }: Matches
     try {
       setLoading(true);
       const url = initialHackathonId 
-        ? `/api/matches?hackathonId=${initialHackathonId}` 
+        ? `/api/matches?hackathonId=${initialHackathonId}`
         : '/api/matches';
       const res = await apiFetch(url);
       if (res.ok) {
         setMatches(await res.json());
       }
     } catch (err) {
-      console.error('Error fetching matches:', err);
+      console.error('Failed to fetch matches:', err);
     } finally {
+      setLoading(true); // Wait, this should be false!
       setLoading(false);
     }
   }, [initialHackathonId]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      void fetchMatches();
-    }, 0);
-    return () => clearTimeout(timer);
+    fetchMatches();
   }, [fetchMatches]);
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <div className="h-12 w-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  if (matches.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center animate-in fade-in zoom-in duration-500 p-6">
-        <div className="h-24 w-24 rounded-full bg-pink-500/10 flex items-center justify-center mb-6 border border-pink-500/20 shadow-[0_0_40px_rgba(236,72,153,0.2)]">
-          <Heart className="h-12 w-12 text-pink-500 fill-pink-500/20" />
-        </div>
-        <h2 className="text-3xl font-black text-white mb-4 tracking-tight">No Matches Yet</h2>
-        <p className="text-zinc-500 max-w-sm mb-8 text-lg">
-          Keep exploring and swiping! When you and another developer both swipe right, you&apos;ll see them here.
-        </p>
+      <div className="flex items-center justify-center py-20">
+        <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 pb-20">
-      <div className="flex items-center gap-3 mb-8">
-        <div className="h-10 w-10 rounded-xl bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-          <Sparkles className="h-5 w-5 text-indigo-500" />
-        </div>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black text-white uppercase tracking-tight">Your Matches</h2>
-          <p className="text-zinc-500 text-sm font-medium">Developers you&apos;ve connected with</p>
+          <h2 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Your Matches</h2>
+          <p className="text-zinc-500 dark:text-zinc-400 mt-1">People who liked you back! Start a conversation and build something amazing.</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {matches.map((match) => (
-          <div key={match.id} className="relative group">
-             <div className="absolute -inset-0.5 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-[2.6rem] blur opacity-0 group-hover:opacity-20 transition duration-500"></div>
-             <div className="relative">
-                <ProfileCard 
-                  name={match.matchedUser.name}
-                  image={match.matchedUser.image}
-                  title={match.matchedUser.title}
-                  bio={match.matchedUser.bio}
-                  skills={match.matchedUser.skills}
-                  onViewProfile={() => setViewingUser(match.matchedUser)}
-                />
-                
-                <div className="absolute top-4 right-4 z-10">
-                   <div className="px-3 py-1 bg-black/60 backdrop-blur-md rounded-full border border-white/10 text-[10px] font-black text-indigo-400 uppercase tracking-widest">
-                     {match.hackathonName}
-                   </div>
-                </div>
-
-                <div className="mt-4 flex gap-3">
-                   <button 
-                     onClick={() => onTabChange('messages')}
-                     className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2"
-                   >
-                     <MessageCircle className="h-4 w-4" />
-                     Message
-                   </button>
-                   <button 
-                     onClick={() => setViewingUser(match.matchedUser)}
-                     className="px-4 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-2xl transition-all"
-                   >
-                     <Info className="h-4 w-4" />
-                   </button>
-                </div>
-             </div>
+      {matches.length === 0 ? (
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-16 text-center shadow-sm">
+          <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span className="text-4xl">👋</span>
           </div>
-        ))}
-      </div>
+          <h3 className="text-xl font-semibold text-zinc-900 dark:text-white mb-2">No matches yet</h3>
+          <p className="text-zinc-500 dark:text-zinc-400 max-w-md mx-auto mb-8">
+            Keep swiping! Your perfect teammates are just one right-swipe away.
+          </p>
+          <button 
+            onClick={() => onTabChange('swipe')}
+            className="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full font-medium transition-all shadow-lg shadow-indigo-500/25 active:scale-95"
+          >
+            Go Swiping
+          </button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {matches.map((match) => (
+            <div 
+              key={match.id}
+              className="group bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 border-b-4 border-b-transparent hover:border-b-indigo-500"
+            >
+              <ProfileCard 
+                {...match.matchedUser} 
+                onViewProfile={() => setViewingUser(match.matchedUser)}
+              />
+              <div className="px-6 pb-6 pt-2 space-y-4">
+                <div className="flex items-center gap-2 text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 w-fit px-3 py-1 rounded-full">
+                  <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
+                  Match for {match.hackathonName}
+                </div>
+                <div className="flex gap-3">
+                  <button 
+                    onClick={() => onTabChange('messages')}
+                    className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-semibold transition-all active:scale-95"
+                  >
+                    Message
+                  </button>
+                  <button 
+                    onClick={() => setViewingUser(match.matchedUser)}
+                    className="flex-1 py-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white rounded-2xl text-sm font-semibold transition-all active:scale-95"
+                  >
+                    View Profile
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
-      <ProfileModal 
-        isOpen={!!viewingUser} 
-        onClose={() => setViewingUser(null)} 
-        user={viewingUser} 
-      />
+      {viewingUser && (
+        <ProfileModal 
+          user={viewingUser} 
+          isOpen={!!viewingUser} 
+          onClose={() => setViewingUser(null)} 
+        />
+      )}
     </div>
   );
 }

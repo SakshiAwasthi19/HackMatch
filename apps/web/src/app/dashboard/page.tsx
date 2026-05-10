@@ -139,7 +139,7 @@ export default function Dashboard() {
               <MatchesView 
                 key={preSelectedMatchHackathonId || 'default'} 
                 initialHackathonId={preSelectedMatchHackathonId} 
-                onTabChange={setActiveTab}
+                onTabChange={handleTabChange}
               />
             )}
 
