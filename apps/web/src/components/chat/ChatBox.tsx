@@ -72,6 +72,7 @@ export function ChatBox({ chatId, currentUser }: ChatBoxProps) {
 
   useEffect(() => {
     // Initial fetch
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchMessages();
 
     // Subscribe to realtime broadcast

@@ -42,6 +42,7 @@ export default function MatchesView({ initialHackathonId, onTabChange }: Matches
   }, [initialHackathonId]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchMatches();
   }, [fetchMatches]);
 
