@@ -35,6 +35,7 @@ import hackathonRouter from "./routes/hackathons.js";
 import swipeRouter from "./routes/swipes.js";
 import teamRouter from "./routes/teams.js";
 import notificationsRouter from "./routes/notifications.js";
+import chatRouter from "./routes/chat.js";
 
 app.all("/api/auth/*", toNodeHandler(auth));
 app.use(lastActiveMiddleware);
@@ -44,6 +45,7 @@ app.use("/api", swipeRouter);
 app.use("/api/hackathons", hackathonRouter);
 app.use("/api/teams", teamRouter);
 app.use("/api/notifications", notificationsRouter);
+app.use("/api/chat", chatRouter);
 
 // Custom Request Extension
 declare global {
