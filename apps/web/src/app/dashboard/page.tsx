@@ -66,7 +66,13 @@ export default function Dashboard() {
   }
 
   // Fallback user object if session is missing but token exists
-  const displayUser = session?.user || { id: 'temp', name: 'User', role: 'USER' };
+  const displayUser = session?.user || { 
+    id: 'temp', 
+    name: 'User', 
+    email: 'user@example.com',
+    role: 'USER', 
+    image: null as string | null 
+  };
 
   // Handle switching from Hackathons list to Detail view
   const handleSelectHackathon = async (hackathonId: string) => {
@@ -109,7 +115,7 @@ export default function Dashboard() {
       <TopNavbar 
         activeTab={activeTab} 
         onTabChange={handleTabChange} 
-        user={displayUser as any} 
+        user={displayUser} 
         onShowMatch={(data) => setMatchData(data)}
       />
       
