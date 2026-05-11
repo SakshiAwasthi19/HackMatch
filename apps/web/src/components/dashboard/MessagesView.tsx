@@ -160,24 +160,27 @@ export default function MessagesView({ initialUserId }: { initialUserId?: string
       {/* Sidebar - Conversation List (Redesigned) */}
       <div className="w-80 border-r border-white/5 flex flex-col bg-[#0a0a0f]">
         <div className="p-8 pb-4">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4 mb-8">
             {/* Filters */}
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               {(['all', 'teams', 'direct'] as FilterType[]).map((f) => (
                 <button
                   key={f}
                   onClick={() => setActiveFilter(f)}
-                  className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                  className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 border ${
                     activeFilter === f 
-                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' 
-                      : 'bg-zinc-900 text-zinc-500 hover:text-zinc-300'
+                      ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 text-white border-indigo-400/50 shadow-[0_0_20px_rgba(99,102,241,0.3)] scale-105' 
+                      : 'bg-zinc-900/50 text-zinc-500 border-white/5 hover:text-zinc-300 hover:bg-zinc-800'
                   }`}
                 >
                   {f}
                 </button>
               ))}
             </div>
-            <button className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-white transition-all">
+            
+            <div className="w-px h-4 bg-white/10" />
+
+            <button className="p-2.5 bg-zinc-900/50 hover:bg-zinc-800 border border-white/5 rounded-full text-zinc-500 hover:text-indigo-400 transition-all active:scale-95">
               <Edit3 className="w-4 h-4" />
             </button>
           </div>

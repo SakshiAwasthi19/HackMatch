@@ -281,13 +281,32 @@ router.post('/swipes', requiredAuth, async (req: any, res: Response) => {
 router.get('/matches', requiredAuth, async (req: any, res: Response) => {
   try {
     const currentUserId = req.session.user.id;
-    const matches = await prisma.match.findMany({
+    const { hackathonId } = req.query;
+
+    const query: any = {
       where: {
         OR: [
           { user1Id: currentUserId },
           { user2Id: currentUserId },
         ]
-      },
+      }
+    };
+
+    // If hackathonId is provided, filter by it.
+    // Use 'null' string to represent global matches if explicitly requested, 
+    // or just pass the ID if it's a specific hackathon.
+    if (hackathonId) {
+      const hId = hackathonId === 'null' ? null : hackathonId;
+      query.where = {
+        AND: [
+          { OR: [{ user1Id: currentUserId }, { user2Id: currentUserId }] },
+          { hackathonId: hId }
+        ]
+      };
+    }
+
+    const matches = await prisma.match.findMany({
+      ...query,
       include: {
         user1: {
           select: {
@@ -317,6 +336,21 @@ router.get('/matches', requiredAuth, async (req: any, res: Response) => {
         createdAt: m.createdAt
       };
     });
+
+    // Deduplicate by matchedUser.id if viewing ALL matches
+    // This prevents the same person appearing multiple times if matched across different contexts
+    if (!hackathonId) {
+      const uniqueMatches: any[] = [];
+      const seenUserIds = new Set();
+
+      for (const match of formattedMatches) {
+        if (!seenUserIds.has(match.matchedUser.id)) {
+          seenUserIds.add(match.matchedUser.id);
+          uniqueMatches.push(match);
+        }
+      }
+      return res.json(uniqueMatches);
+    }
 
     res.json(formattedMatches);
   } catch (error) {
