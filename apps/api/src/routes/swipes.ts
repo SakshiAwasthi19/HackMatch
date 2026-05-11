@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { prisma } from '../db.js';
 import { auth } from '../auth.js';
 import { pushNotification } from '../lib/realtime.js';
+import { getOrCreateDMChat } from '../lib/chat-utils.js';
 
 const router = Router();
 
@@ -172,38 +173,30 @@ router.post('/swipes', requiredAuth, async (req: any, res: Response) => {
           });
 
           // Also create a private DM chat between them for individual networking
-          const dmChat = await tx.chat.create({
-            data: { type: 'DM' },
-          });
-
-          await tx.chatMember.create({
-            data: { chatId: dmChat.id, userId: currentUserId },
-          });
-
-          await tx.chatMember.create({
-            data: { chatId: dmChat.id, userId: receiverId },
-          });
+          await getOrCreateDMChat(currentUserId, receiverId, tx);
         } else {
           // Case 2: One or both already in a team → create DM Chat only
-          chat = await tx.chat.create({
-            data: { type: 'DM' },
-          });
+          chat = await getOrCreateDMChat(currentUserId, receiverId, tx);
         }
       } else {
         // Global Explore Match → Create DM only
-        chat = await tx.chat.create({
-          data: { type: 'DM' },
-        });
+        chat = await getOrCreateDMChat(currentUserId, receiverId, tx);
       }
 
-      // Add both users to chat
-      await tx.chatMember.create({
-        data: { chatId: chat.id, userId: currentUserId },
-      });
+      // Add both users to chat (if it's a NEW chat, getOrCreateDMChat already handles membership)
+      // If it's a GROUP chat (from Case 1), we still need to add members to THAT chat.
+      // Wait, in Case 1, chat is the GROUP chat. dmChat is the DM chat.
+      // The current code adds members to 'chat'.
+      
+      if (chat.type === 'GROUP') {
+        await tx.chatMember.create({
+          data: { chatId: chat.id, userId: currentUserId },
+        }).catch(() => {}); // Ignore if already member
 
-      await tx.chatMember.create({
-        data: { chatId: chat.id, userId: receiverId },
-      });
+        await tx.chatMember.create({
+          data: { chatId: chat.id, userId: receiverId },
+        }).catch(() => {}); // Ignore if already member
+      }
 
       // Check if match already exists
       const existingMatch = await tx.match.findFirst({

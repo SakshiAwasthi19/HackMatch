@@ -98,6 +98,8 @@ router.get('/', requiredAuth, async (req: any, res: Response) => {
   }
 });
 
+import { getOrCreateDMChat } from '../lib/chat-utils.js';
+
 // POST /api/chat/dm - Get or create a DM chat with another user
 router.post('/dm', requiredAuth, async (req: any, res: Response) => {
   try {
@@ -106,34 +108,8 @@ router.post('/dm', requiredAuth, async (req: any, res: Response) => {
 
     if (!targetUserId) return res.status(400).json({ error: 'targetUserId is required' });
 
-    // Check if DM already exists
-    const existingChat = await prisma.chat.findFirst({
-      where: {
-        type: 'DM',
-        members: {
-          every: {
-            userId: { in: [userId, targetUserId] }
-          }
-        }
-      }
-    });
-
-    if (existingChat) return res.json(existingChat);
-
-    // Create new DM
-    const newChat = await prisma.chat.create({
-      data: {
-        type: 'DM',
-        members: {
-          create: [
-            { userId },
-            { userId: targetUserId }
-          ]
-        }
-      }
-    });
-
-    return res.status(201).json(newChat);
+    const chat = await getOrCreateDMChat(userId, targetUserId);
+    return res.status(200).json(chat);
   } catch (error) {
     console.error('Error creating DM:', error);
     return res.status(500).json({ error: 'Failed to create DM' });
