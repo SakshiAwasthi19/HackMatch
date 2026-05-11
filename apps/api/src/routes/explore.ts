@@ -56,7 +56,7 @@ router.get('/swipe-deck', requiredAuth, async (req: any, res: Response) => {
     });
 
     // 4. Fetch relationship data for these users to determine button states
-    const userIds = users.map(u => u.id);
+    const userIds = users.map((u: any) => u.id);
 
     const [sentSwipes, receivedSwipes, matches] = await Promise.all([
       prisma.swipe.findMany({
@@ -75,14 +75,14 @@ router.get('/swipe-deck', requiredAuth, async (req: any, res: Response) => {
       })
     ]);
 
-    const sentIds = new Set(sentSwipes.map(s => s.receiverId));
-    const receivedIds = new Set(receivedSwipes.map(s => s.senderId));
+    const sentIds = new Set(sentSwipes.map((s: any) => s.receiverId));
+    const receivedIds = new Set(receivedSwipes.map((s: any) => s.senderId));
     const matchedIds = new Set([
-      ...matches.map(m => m.user1Id === userId ? m.user2Id : m.user1Id)
+      ...matches.map((m: any) => m.user1Id === userId ? m.user2Id : m.user1Id)
     ]);
 
     // 5. Merge status into user objects
-    const usersWithStatus = users.map(user => ({
+    const usersWithStatus = users.map((user: any) => ({
       ...user,
       isMatched: matchedIds.has(user.id),
       hasSentRequest: sentIds.has(user.id),
