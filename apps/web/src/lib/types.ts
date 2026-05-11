@@ -105,4 +105,5 @@ export interface SwipeDeckUser {
   githubUrl: string | null;
   role?: string | null;
   skills: { skill: { id: string; name: string } }[] | string[];
+  lookingFor?: string[];
 }
