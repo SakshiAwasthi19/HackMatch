@@ -119,12 +119,12 @@ export default function SwipeDeck({
 
   if (users.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-[500px] text-center px-4">
-        <div className="h-24 w-24 rounded-full bg-zinc-800/50 flex items-center justify-center mb-6">
+      <div className="flex flex-col items-center justify-center min-h-[400px] text-center px-4">
+        <div className="h-24 w-24 rounded-full bg-zinc-800/50 flex items-center justify-center mb-6 border border-zinc-700">
           <Heart className="h-10 w-10 text-zinc-600" />
         </div>
-        <h3 className="text-xl font-semibold text-zinc-300 mb-2">No one here yet</h3>
-        <p className="text-zinc-500 max-w-xs">
+        <h3 className="text-xl font-black text-white mb-2">No one here yet</h3>
+        <p className="text-zinc-500 max-w-xs text-sm">
           Check back later — new people are joining all the time!
         </p>
       </div>
@@ -132,14 +132,14 @@ export default function SwipeDeck({
   }
 
   return (
-    <div className="flex flex-col items-center gap-6 py-8 min-h-screen bg-[#0a0a0f] relative overflow-hidden">
-      {/* Background Radial Glow */}
-      <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] bg-indigo-500/10 blur-[120px] rounded-full" />
+    <div className="flex flex-col items-center justify-center relative w-full">
+      {/* Background Radial Glow - Minimal & Subtle */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-visible">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-500/5 blur-[100px] rounded-full" />
       </div>
 
       {/* Card Stack */}
-      <div className="relative w-[380px] h-[580px] perspective-1000 z-10">
+      <div className="relative w-[380px] h-[580px] perspective-1000 z-10 flex items-center justify-center">
         {springs.map((style, i) => {
           if (i < currentIndex || i > currentIndex + 2) return null;
           return (
@@ -156,20 +156,19 @@ export default function SwipeDeck({
 
         {/* Empty state when all cards swiped */}
         {currentIndex >= users.length && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 bg-[#0d0d14] border border-dashed border-zinc-800 rounded-[20px] z-0">
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 z-0">
             <div className="h-20 w-20 rounded-full bg-zinc-900 flex items-center justify-center mb-6 border border-zinc-800">
               <Heart className="h-10 w-10 text-zinc-700" />
             </div>
             <h3 className="text-2xl font-bold text-white mb-2 tracking-tight">All Caught Up!</h3>
-            <p className="text-zinc-500">Check back later for new potential teammates.</p>
+            <p className="text-zinc-500 text-sm">Check back later for new potential teammates.</p>
           </div>
         )}
       </div>
 
-      {/* Action Buttons - Redesigned Dark Bordered circular style */}
+      {/* Action Buttons - Floating naturally below the stack */}
       {currentIndex < users.length && (
-        <div className="flex items-center gap-6 z-20 mt-4">
-          {/* Dislike/Pass Button */}
+        <div className="flex items-center gap-6 z-20 mt-8">
           <button
             onClick={() => triggerSwipe(-1)}
             className="group w-14 h-14 rounded-full bg-[#14141c] border-[1.5px] border-red-500/40 flex items-center justify-center text-red-500 shadow-[0_4px_20px_rgba(239,68,68,0.2)] hover:border-red-500/80 hover:shadow-[0_4px_25px_rgba(239,68,68,0.4)] transition-all duration-200 active:scale-90"
@@ -177,7 +176,6 @@ export default function SwipeDeck({
             <X className="w-[22px] h-[22px]" />
           </button>
 
-          {/* Super-like / Connect Button */}
           <button
             onClick={() => onConnect(users[currentIndex])}
             className="group w-12 h-12 rounded-full bg-[#14141c] border-[1.5px] border-indigo-500/40 flex items-center justify-center text-indigo-500 shadow-[0_4px_15px_rgba(99,102,241,0.2)] hover:border-indigo-500/80 transition-all duration-200 active:scale-90"
@@ -185,7 +183,6 @@ export default function SwipeDeck({
             <Zap className="w-[18px] h-[18px] fill-indigo-500/20 group-hover:fill-indigo-500/40 transition-colors" />
           </button>
 
-          {/* Like/Heart Button */}
           <button
             onClick={() => triggerSwipe(1)}
             className="group w-14 h-14 rounded-full bg-[#14141c] border-[1.5px] border-green-500/40 flex items-center justify-center text-green-500 shadow-[0_4px_20px_rgba(34,197,94,0.2)] hover:border-green-500/80 hover:shadow-[0_4px_25px_rgba(34,197,94,0.4)] transition-all duration-200 active:scale-90"

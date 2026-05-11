@@ -70,7 +70,6 @@ export default function SwipeView({ selectedHackathonId: initialHackathonId, onM
     }
   }, [activeHackathonId]);
 
-  // Sync with initialHackathonId if it changes from parent
   useEffect(() => {
     const timer = setTimeout(() => {
       if (initialHackathonId !== activeHackathonId) {
@@ -113,32 +112,32 @@ export default function SwipeView({ selectedHackathonId: initialHackathonId, onM
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 px-4 pb-20">
-      {/* Hackathon Filter */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-2 text-zinc-500 mb-2">
-          <Filter className="h-4 w-4" />
-          <span className="text-xs font-bold uppercase tracking-widest">Filter by Hackathon</span>
+    <div className="w-full mx-auto space-y-12 px-4 pb-20 flex flex-col items-center">
+      {/* Hackathon Filter - Minimalist pill style */}
+      <div className="w-full max-w-2xl flex flex-col items-center gap-6">
+        <div className="flex items-center gap-2 text-zinc-600">
+          <Filter className="h-3.5 w-3.5" />
+          <span className="text-[10px] font-black uppercase tracking-[0.2em]">Filter Network</span>
         </div>
-        <div className="flex items-center gap-3 overflow-x-auto pb-4 hide-scrollbar">
+        <div className="flex items-center gap-3 overflow-x-auto pb-4 no-scrollbar w-full justify-start sm:justify-center">
           <button
             onClick={() => setActiveHackathonId(null)}
-            className={`flex-shrink-0 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all border ${
+            className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all border ${
               activeHackathonId === null
-                ? 'bg-white text-black border-white shadow-[0_0_20px_rgba(255,255,255,0.2)]'
-                : 'bg-zinc-900/50 text-zinc-500 border-zinc-800/50 hover:border-zinc-700'
+                ? 'bg-white text-black border-white shadow-lg'
+                : 'bg-zinc-900/40 text-zinc-500 border-zinc-800/60 hover:border-zinc-700 hover:text-zinc-400'
             }`}
           >
-            Global Swipe
+            Global
           </button>
           {hackathons.map((h) => (
             <button
               key={h.id}
               onClick={() => setActiveHackathonId(h.id)}
-              className={`flex-shrink-0 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all border ${
+              className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] transition-all border ${
                 activeHackathonId === h.id
-                  ? 'bg-indigo-600 text-white border-indigo-500 shadow-[0_0_20px_rgba(79,70,229,0.4)]'
-                  : 'bg-zinc-900/50 text-zinc-500 border-zinc-800/50 hover:border-zinc-700'
+                  ? 'bg-indigo-600 text-white border-indigo-500 shadow-lg shadow-indigo-600/20'
+                  : 'bg-zinc-900/40 text-zinc-500 border-zinc-800/60 hover:border-zinc-700 hover:text-zinc-400'
               }`}
             >
               {h.name}
@@ -147,44 +146,44 @@ export default function SwipeView({ selectedHackathonId: initialHackathonId, onM
         </div>
       </div>
 
-      <div className="relative flex flex-col items-center justify-center min-h-[500px]">
+      {/* Swipe Area - Purely functional, no background boxes */}
+      <div className="w-full flex justify-center py-4">
         {loading ? (
-          <div className="flex justify-center items-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
+          <div className="flex flex-col items-center gap-4 py-20">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500/20 border-t-indigo-500"></div>
+            <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest animate-pulse">Loading Deck...</span>
           </div>
         ) : error ? (
-          <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-center max-w-lg mx-auto">
-            <p className="text-lg font-bold mb-2">Deck Loading Failed</p>
-            <p className="text-sm opacity-80">{error}</p>
+          <div className="p-8 bg-red-500/5 border border-red-500/10 rounded-3xl text-red-500 text-center max-w-md w-full">
+            <p className="text-sm font-black uppercase tracking-widest mb-4">Connection Error</p>
+            <p className="text-xs opacity-70 mb-8">{error}</p>
             <button 
               onClick={fetchSwipeDeck} 
-              className="mt-6 px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-500/20"
+              className="w-full py-3 bg-red-500/20 hover:bg-red-500/30 text-red-500 font-black text-xs uppercase tracking-widest rounded-xl transition-all border border-red-500/20"
             >
-              Try Again
+              Retry Connection
             </button>
           </div>
         ) : users.length === 0 ? (
-          <div className="flex flex-col items-center justify-center text-center animate-in fade-in zoom-in duration-500 p-6">
-            <div className="h-24 w-24 rounded-full bg-indigo-500/10 flex items-center justify-center mb-6 border border-indigo-500/20 shadow-[0_0_40px_rgba(99,102,241,0.2)]">
-              <Zap className="h-12 w-12 text-indigo-500" />
+          <div className="flex flex-col items-center justify-center text-center p-12">
+            <div className="h-20 w-20 rounded-full bg-indigo-500/5 flex items-center justify-center mb-8 border border-indigo-500/10">
+              <Zap className="h-8 w-8 text-indigo-500/50" />
             </div>
-            <h2 className="text-3xl font-black text-white mb-4 tracking-tight">Out of People!</h2>
-            <p className="text-zinc-500 max-w-sm mb-8 text-lg font-medium">
-              You&apos;ve swiped through all available developers {activeHackathonId ? 'for this hackathon' : 'globally'}. Check back later or try a different filter!
+            <h2 className="text-2xl font-black text-white mb-2 tracking-tight">No more matches!</h2>
+            <p className="text-zinc-500 max-w-xs text-sm">
+              You&apos;ve reached the end of the list. Try switching filters or check back later.
             </p>
           </div>
         ) : (
-          <div className="w-full max-w-sm relative z-10">
-            <SwipeDeck 
-              key={activeHackathonId || 'global'} 
-              users={users} 
-              onSwipe={handleSwipe}
-              onConnect={(user) => setConnectingUser(user)}
-              onEmpty={() => setUsers([])} 
-              onMatch={(result) => onMatch?.(result)} 
-              onViewProfile={(user) => setViewingUser(user)}
-            />
-          </div>
+          <SwipeDeck 
+            key={activeHackathonId || 'global'} 
+            users={users} 
+            onSwipe={handleSwipe}
+            onConnect={(user) => setConnectingUser(user)}
+            onEmpty={() => setUsers([])} 
+            onMatch={(result) => onMatch?.(result)} 
+            onViewProfile={(user) => setViewingUser(user)}
+          />
         )}
       </div>
 
@@ -198,9 +197,7 @@ export default function SwipeView({ selectedHackathonId: initialHackathonId, onM
         isOpen={!!connectingUser}
         onClose={() => setConnectingUser(null)}
         user={connectingUser}
-        onSuccess={() => {
-          // Success behavior
-        }}
+        onSuccess={() => {}}
       />
     </div>
   );
