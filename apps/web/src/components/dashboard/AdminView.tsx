@@ -21,10 +21,10 @@ interface AdminViewProps {
 const SidebarItem = ({ id, label, icon: Icon, activeTab, setActiveTab }: { id: AdminTab, label: string, icon: React.ComponentType<{ className?: string }>, activeTab: AdminTab, setActiveTab: (id: AdminTab) => void }) => (
   <button
     onClick={() => setActiveTab(id)}
-    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all
+    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all
       ${activeTab === id 
-        ? 'bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 shadow-[0_0_20px_rgba(79,70,229,0.1)]' 
-        : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/50'
+        ? 'bg-indigo-600/10 text-indigo-400 border border-indigo-500/10' 
+        : 'text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800/30'
       }`}
   >
     <Icon className={`h-4 w-4 ${activeTab === id ? 'text-indigo-400' : ''}`} />
@@ -164,9 +164,9 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
   const [now] = useState(() => Date.now());
 
   return (
-    <div className="flex h-[calc(100vh-120px)] bg-[#050507] rounded-[2.5rem] overflow-hidden border border-zinc-800/50 shadow-2xl">
+    <div className="flex h-[calc(100vh-64px)] bg-[#050507] overflow-hidden">
       {/* Sidebar */}
-      <div className="w-64 border-r border-zinc-800/50 flex flex-col p-6 space-y-8 bg-[#0a0a0c]">
+      <div className="w-64 border-r border-zinc-800/30 flex flex-col p-6 space-y-8 bg-[#0a0a0c]">
         <div className="flex items-center gap-3 px-2">
           <div className="h-10 w-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
             <Shield className="h-6 w-6 text-white" />
@@ -185,10 +185,10 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
           <SidebarItem id="analytics" label="Analytics" icon={BarChart3} activeTab={activeTab} setActiveTab={setActiveTab} />
         </div>
 
-        <div className="space-y-4 pt-6 border-t border-zinc-800/50">
+        <div className="space-y-4 pt-6 border-t border-zinc-800/30">
           <button 
             onClick={() => setActiveTab('dashboard')}
-            className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-2xl font-bold shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02] active:scale-95"
+            className="w-full py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/20 transition-all hover:scale-[1.02] active:scale-95"
           >
             Create Hackathon
           </button>
@@ -226,7 +226,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                 { label: 'Active Users', value: users.length, change: 'Live Now', icon: Users, isLive: true },
                 { label: 'Pending Approvals', value: '18', change: 'Action Required', icon: ShieldAlert, isWarning: true },
               ].map((stat, i) => (
-                <div key={i} className="p-6 bg-[#0a0a0c] border border-zinc-800/50 rounded-[2rem] space-y-4 group hover:border-zinc-700 transition-all">
+                <div key={i} className="p-6 bg-zinc-900/10 border border-zinc-800/30 rounded-xl space-y-4 group hover:border-zinc-700/50 transition-all">
                   <div className="flex items-center justify-between">
                     <div className="p-2 bg-zinc-900 rounded-xl text-zinc-400 group-hover:text-indigo-400 transition-colors">
                       <stat.icon className="h-5 w-5" />
@@ -255,7 +255,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                 const isActive = !isExpired && !isUpcoming;
 
                 return (
-                  <div key={h.id} className="group bg-[#0a0a0c] border border-zinc-800/50 rounded-3xl overflow-hidden hover:border-zinc-700 transition-all flex flex-col shadow-2xl">
+                  <div key={h.id} className="group bg-zinc-900/10 border border-zinc-800/30 rounded-xl overflow-hidden hover:border-zinc-700/50 transition-all flex flex-col shadow-sm">
                     <div className="relative h-40 bg-zinc-900 overflow-hidden">
                       <Image 
                         src={h.imageUrl || 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80'} 
@@ -311,9 +311,9 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
               })}
 
               {/* Create Placeholder Card */}
-              <button 
-                onClick={() => setActiveTab('create')}
-                className="group border-2 border-dashed border-zinc-800 hover:border-indigo-500/50 rounded-3xl p-8 flex flex-col items-center justify-center text-center space-y-4 bg-zinc-900/10 transition-all hover:bg-indigo-500/5"
+                <button 
+                onClick={() => setActiveTab('dashboard')}
+                className="group border-2 border-dashed border-zinc-800/50 hover:border-indigo-500/50 rounded-xl p-8 flex flex-col items-center justify-center text-center space-y-4 bg-zinc-900/5 transition-all hover:bg-indigo-500/5"
               >
                 <div className="h-14 w-14 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-600 group-hover:bg-indigo-600 group-hover:text-white group-hover:scale-110 transition-all shadow-xl">
                   <Plus className="h-6 w-6" />
@@ -352,7 +352,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
               </div>
             </div>
 
-            <div className="bg-[#0a0a0c] border border-zinc-800/50 rounded-[2.5rem] overflow-hidden shadow-2xl">
+            <div className="bg-zinc-900/10 border border-zinc-800/30 rounded-xl overflow-hidden shadow-sm">
               <div className="p-8 space-y-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-bold text-white">Registered Students</h3>
@@ -494,7 +494,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
               ))}
             </div>
 
-            <div className="bg-[#0a0a0c] border border-zinc-800/50 rounded-[2.5rem] overflow-hidden shadow-2xl">
+            <div className="bg-zinc-900/10 border border-zinc-800/30 rounded-xl overflow-hidden shadow-sm">
               <div className="p-8 space-y-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-bold text-white">
@@ -579,7 +579,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
         )}
 
         {activeTab === 'dashboard' && (
-          <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-4xl font-black text-white tracking-tight">Launch Event</h1>
@@ -593,7 +593,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
               </button>
             </div>
 
-            <div className="bg-[#0a0a0c] border border-zinc-800/50 rounded-[2.5rem] overflow-hidden shadow-2xl">
+            <div className="bg-zinc-900/10 border border-zinc-800/30 rounded-xl overflow-hidden shadow-sm">
               <div className="p-8">
                 <form onSubmit={handleCreateHackathon} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -605,7 +605,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                         value={formData.name}
                         onChange={e => setFormData({ ...formData, name: e.target.value })}
                         placeholder="e.g. Global AI Summit 2024"
-                        className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
+                        className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
                       />
                     </div>
 
@@ -617,7 +617,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                         value={formData.description}
                         onChange={e => setFormData({ ...formData, description: e.target.value })}
                         placeholder="Describe the mission, prize pool, and tracks..."
-                        className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none resize-none text-white font-medium"
+                        className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
                       />
                     </div>
 
@@ -628,7 +628,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                         type="date"
                         value={formData.startDate}
                         onChange={e => setFormData({ ...formData, startDate: e.target.value })}
-                        className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white"
+                        className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white"
                       />
                     </div>
 
@@ -639,7 +639,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                         type="date"
                         value={formData.endDate}
                         onChange={e => setFormData({ ...formData, endDate: e.target.value })}
-                        className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white"
+                        className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white"
                       />
                     </div>
 
@@ -648,7 +648,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                       <select
                         value={formData.mode}
                         onChange={e => setFormData({ ...formData, mode: e.target.value })}
-                        className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white appearance-none cursor-pointer"
+                        className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white appearance-none cursor-pointer"
                       >
                         <option value="ONLINE">Online (Remote)</option>
                         <option value="IN_PERSON">In-Person</option>
@@ -662,7 +662,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                         <select
                           value={formData.tags}
                           onChange={e => setFormData({ ...formData, tags: e.target.value })}
-                          className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white appearance-none cursor-pointer"
+                          className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white appearance-none cursor-pointer"
                         >
                           {domains.map(d => (
                             <option key={d} value={d}>{d}</option>
@@ -675,7 +675,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                             value={customTag}
                             onChange={e => setCustomTag(e.target.value)}
                             placeholder="Specify domain..."
-                            className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
+                            className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
                           />
                         )}
                       </div>
@@ -688,7 +688,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                         value={formData.websiteUrl}
                         onChange={e => setFormData({ ...formData, websiteUrl: e.target.value })}
                         placeholder="https://hackathon.com/apply"
-                        className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
+                        className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
                       />
                     </div>
 
@@ -699,7 +699,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                         value={formData.city}
                         onChange={e => setFormData({ ...formData, city: e.target.value })}
                         placeholder="e.g. San Francisco, CA"
-                        className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
+                        className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
                       />
                     </div>
 
@@ -711,7 +711,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                           value={formData.imageUrl}
                           onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
                           placeholder="Or paste direct image URL..."
-                          className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
+                          className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
                         />
                         <div className="relative">
                           <input
@@ -804,7 +804,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
               </div>
             </div>
 
-            <div className="bg-[#0a0a0c] border border-zinc-800/50 rounded-[2.5rem] overflow-hidden shadow-2xl">
+            <div className="bg-zinc-900/10 border border-zinc-800/30 rounded-xl overflow-hidden shadow-sm">
               <div className="p-8 space-y-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-bold text-white">Registered Students</h3>
@@ -939,14 +939,14 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                 { label: 'Accepted', value: hostRequests.filter(r => r.status === 'APPROVED').length, color: 'text-emerald-400' },
                 { label: 'Rejected', value: hostRequests.filter(r => r.status === 'REJECTED').length, color: 'text-red-400' },
               ].map((s, i) => (
-                <div key={i} className="p-6 bg-[#0a0a0c] border border-zinc-800/50 rounded-3xl space-y-2 group hover:border-zinc-700 transition-all">
+                <div key={i} className="p-6 bg-zinc-900/10 border border-zinc-800/30 rounded-xl space-y-2 group hover:border-zinc-700 transition-all">
                   <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">{s.label}</p>
                   <p className={`text-3xl font-black ${s.color}`}>{s.value}</p>
                 </div>
               ))}
             </div>
 
-            <div className="bg-[#0a0a0c] border border-zinc-800/50 rounded-[2.5rem] overflow-hidden shadow-2xl">
+            <div className="bg-zinc-900/10 border border-zinc-800/30 rounded-xl overflow-hidden shadow-sm">
               <div className="p-8 space-y-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl font-bold text-white">
@@ -1031,7 +1031,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
         )}
 
         {activeTab === 'dashboard' && (
-          <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-4xl font-black text-white tracking-tight">Launch Event</h1>
@@ -1045,7 +1045,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
               </button>
             </div>
 
-            <div className="bg-[#0a0a0c] border border-zinc-800/50 rounded-[2.5rem] overflow-hidden shadow-2xl">
+            <div className="bg-zinc-900/10 border border-zinc-800/30 rounded-xl overflow-hidden shadow-sm">
               <div className="p-8">
                 <form onSubmit={handleCreateHackathon} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1057,7 +1057,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                         value={formData.name}
                         onChange={e => setFormData({ ...formData, name: e.target.value })}
                         placeholder="e.g. Global AI Summit 2024"
-                        className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
+                        className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
                       />
                     </div>
 
@@ -1069,7 +1069,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                         value={formData.description}
                         onChange={e => setFormData({ ...formData, description: e.target.value })}
                         placeholder="Describe the mission, prize pool, and tracks..."
-                        className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none resize-none text-white font-medium"
+                        className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
                       />
                     </div>
 
@@ -1080,7 +1080,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                         type="date"
                         value={formData.startDate}
                         onChange={e => setFormData({ ...formData, startDate: e.target.value })}
-                        className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white"
+                        className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white"
                       />
                     </div>
 
@@ -1091,7 +1091,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                         type="date"
                         value={formData.endDate}
                         onChange={e => setFormData({ ...formData, endDate: e.target.value })}
-                        className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white"
+                        className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white"
                       />
                     </div>
 
@@ -1100,7 +1100,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                       <select
                         value={formData.mode}
                         onChange={e => setFormData({ ...formData, mode: e.target.value })}
-                        className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white appearance-none cursor-pointer"
+                        className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white appearance-none cursor-pointer"
                       >
                         <option value="ONLINE">Online (Remote)</option>
                         <option value="IN_PERSON">In-Person</option>
@@ -1114,7 +1114,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                         <select
                           value={formData.tags}
                           onChange={e => setFormData({ ...formData, tags: e.target.value })}
-                          className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white appearance-none cursor-pointer"
+                          className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white appearance-none cursor-pointer"
                         >
                           {domains.map(d => (
                             <option key={d} value={d}>{d}</option>
@@ -1127,7 +1127,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                             value={customTag}
                             onChange={e => setCustomTag(e.target.value)}
                             placeholder="Specify domain..."
-                            className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
+                            className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
                           />
                         )}
                       </div>
@@ -1140,7 +1140,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                         value={formData.websiteUrl}
                         onChange={e => setFormData({ ...formData, websiteUrl: e.target.value })}
                         placeholder="https://hackathon.com/apply"
-                        className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
+                        className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
                       />
                     </div>
 
@@ -1151,7 +1151,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                         value={formData.city}
                         onChange={e => setFormData({ ...formData, city: e.target.value })}
                         placeholder="e.g. San Francisco, CA"
-                        className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
+                        className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
                       />
                     </div>
 
@@ -1163,7 +1163,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                           value={formData.imageUrl}
                           onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
                           placeholder="Or paste direct image URL..."
-                          className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
+                          className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none text-white font-medium"
                         />
                         <div className="relative">
                           <input
@@ -1172,7 +1172,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                             onChange={e => setPosterFile(e.target.files?.[0] || null)}
                             className="absolute inset-0 opacity-0 cursor-pointer z-10"
                           />
-                          <div className="w-full px-5 py-4 bg-[#050507] border border-zinc-800 rounded-2xl text-zinc-500 flex items-center gap-3 font-medium">
+                          <div className="w-full px-5 py-3 bg-zinc-900/50 border border-zinc-800/50 rounded-xl text-zinc-500 flex items-center gap-3 font-medium">
                             <Globe className="h-5 w-5 text-indigo-500" />
                             <span>{posterFile ? posterFile.name : 'Upload file from local...'}</span>
                           </div>
