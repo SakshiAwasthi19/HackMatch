@@ -71,7 +71,7 @@ router.get('/swipe-deck', requiredAuth, async (req: any, res: Response) => {
     const incomingSwipes = await prisma.swipe.findMany({
       where: {
         receiverId: userId,
-        senderId: { in: users.map(u => u.id) },
+        senderId: { in: users.map((u: any) => u.id) },
         type: 'RIGHT',
       },
       select: {
@@ -79,9 +79,9 @@ router.get('/swipe-deck', requiredAuth, async (req: any, res: Response) => {
       }
     });
 
-    const incomingSenderIds = new Set(incomingSwipes.map(s => s.senderId));
+    const incomingSenderIds = new Set(incomingSwipes.map((s: any) => s.senderId));
 
-    const usersWithStatus = users.map(user => ({
+    const usersWithStatus = users.map((user: any) => ({
       ...user,
       receivedRequest: incomingSenderIds.has(user.id),
     }));
