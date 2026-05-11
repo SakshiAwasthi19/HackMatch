@@ -170,6 +170,19 @@ router.post('/swipes', requiredAuth, async (req: any, res: Response) => {
           chat = await tx.chat.create({
             data: { type: 'GROUP', teamId: team.id },
           });
+
+          // Also create a private DM chat between them for individual networking
+          const dmChat = await tx.chat.create({
+            data: { type: 'DM' },
+          });
+
+          await tx.chatMember.create({
+            data: { chatId: dmChat.id, userId: currentUserId },
+          });
+
+          await tx.chatMember.create({
+            data: { chatId: dmChat.id, userId: receiverId },
+          });
         } else {
           // Case 2: One or both already in a team → create DM Chat only
           chat = await tx.chat.create({

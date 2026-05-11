@@ -242,7 +242,18 @@ export default function ExploreView({ onMatch, onStartChat }: ExploreViewProps) 
                   user={user}
                   onConnect={(id) => handleAction(id, 'RIGHT', null)}
                   onCollaborate={(id) => handleAction(id, 'RIGHT', null)}
-                  onMessage={(id) => onStartChat(id)}
+                  onMessage={async (id) => {
+                    try {
+                      await apiFetch('/api/chat/dm', {
+                        method: 'POST',
+                        body: JSON.stringify({ targetUserId: id })
+                      });
+                      onStartChat(id);
+                    } catch (err) {
+                      console.error('Failed to ensure DM chat:', err);
+                      onStartChat(id); // Fallback to just opening messages
+                    }
+                  }}
                   onViewProfile={(u) => setViewingUser(u)}
                 />
               ))}
