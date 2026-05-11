@@ -135,7 +135,7 @@ export default function Dashboard() {
             )}
 
             {activeTab === 'explore' && (
-              <ExploreView />
+              <ExploreView onMatch={(data) => setMatchData(data)} />
             )}
 
             {activeTab === 'matches' && (

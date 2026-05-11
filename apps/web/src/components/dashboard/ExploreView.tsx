@@ -7,13 +7,15 @@ import { apiFetch } from '@/lib/auth-client';
 import { SwipeDeckUser, SwipeResult } from '@/lib/types';
 import ProfileModal from '../shared/ProfileModal';
 import MatchOverlay from '../match/MatchOverlay';
+interface ExploreViewProps {
+  onMatch: (data: SwipeResult) => void;
+}
 
-export default function ExploreView() {
+export default function ExploreView({ onMatch }: ExploreViewProps) {
   const [users, setUsers] = useState<SwipeDeckUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewingUser, setViewingUser] = useState<any>(null);
-  const [matchData, setMatchData] = useState<SwipeResult | null>(null);
 
   const fetchExploreDeck = useCallback(async () => {
     try {
@@ -98,7 +100,7 @@ export default function ExploreView() {
               users={users} 
               onSwipe={handleSwipe} 
               onEmpty={() => setUsers([])} 
-              onMatch={(result) => setMatchData(result)}
+              onMatch={onMatch}
               onViewProfile={(user) => setViewingUser(user)}
             />
           </div>
@@ -110,13 +112,6 @@ export default function ExploreView() {
         onClose={() => setViewingUser(null)} 
         user={viewingUser} 
       />
-
-      {matchData && (
-        <MatchOverlay 
-          match={matchData} 
-          onClose={() => setMatchData(null)} 
-        />
-      )}
     </div>
   );
 }

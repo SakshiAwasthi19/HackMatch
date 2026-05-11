@@ -119,7 +119,7 @@ router.get('/teams', async (req, res) => {
                 }
             }
         });
-        const teams = memberships.map(m => ({
+        const teams = memberships.map((m) => ({
             id: m.teamId,
             name: m.team.name,
             lookingFor: m.team.lookingFor,
