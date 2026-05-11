@@ -18,6 +18,7 @@ import TeamManager from '@/components/dashboard/TeamManager';
 import { apiFetch } from '@/lib/auth-client';
 import MatchOverlay from '@/components/match/MatchOverlay';
 import { Hackathon, AdminTab, SwipeResult } from '@/lib/types';
+import { useSearchParams } from 'next/navigation';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -34,6 +35,20 @@ export default function Dashboard() {
   const [swipeRefreshKey, setSwipeRefreshKey] = useState(0);
   const [currentUserProfile, setCurrentUserProfile] = useState<{ title?: string | null } | null>(null);
   const [isHydrating, setIsHydrating] = useState(true);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    // Handle query params for deep linking
+    const tab = searchParams.get('tab') as TabType | null;
+    const chatId = searchParams.get('chatId');
+    const userId = searchParams.get('userId');
+
+    if (tab) {
+      setActiveTab(tab);
+      if (chatId) setTargetChatId(chatId);
+      if (userId) setTargetChatUserId(userId);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     // Give mobile browsers extra time to hydrate session/cookies

@@ -214,6 +214,11 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
           currentUserImage={session.user?.image || null}
           currentUserTitle={currentUserProfile?.title}
           onClose={() => setMatchResult(null)}
+          onAction={({ chatId }) => {
+            setMatchResult(null);
+            if (chatId) router.push(`/dashboard?tab=messages&chatId=${chatId}`);
+            else router.push('/dashboard?tab=messages');
+          }}
         />
       )}
 
