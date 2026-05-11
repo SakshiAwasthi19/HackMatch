@@ -3,17 +3,23 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { Sparkles, MessageCircle, Trophy, ArrowRight, UserPlus, Check } from 'lucide-react';
+import { Send, Compass, Bolt, UserPlus } from 'lucide-react';
 import Image from 'next/image';
 import { apiFetch } from '@/lib/auth-client';
 
 interface MatchOverlayProps {
   isOpen: boolean;
-  matchedUser?: { id: string; name: string; image: string | null };
+  matchedUser?: { 
+    id: string; 
+    name: string; 
+    image: string | null;
+    title?: string | null;
+  };
   teamId?: string | null;
   chatId?: string | null;
   hackathonName: string;
   currentUserImage?: string | null;
+  currentUserTitle?: string | null;
   onClose: () => void;
   // Invitation specific
   matchType?: 'match' | 'teamInvite' | 'dm';
@@ -57,8 +63,8 @@ export default function MatchOverlay({
   matchedUser,
   teamId,
   chatId,
-  hackathonName,
   currentUserImage,
+  currentUserTitle,
   onClose,
   matchType = 'match',
   relatedId
@@ -101,169 +107,147 @@ export default function MatchOverlay({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-md"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0a0c14]/95 backdrop-blur-xl"
         >
-          {/* Celebration Particles - Only for matches or successful acceptance */}
-          {(matchType === 'match' || accepted) && Array.from({ length: 20 }).map((_, i) => (
+          {/* Celebration Particles */}
+          {(matchType === 'match' || accepted) && Array.from({ length: 30 }).map((_, i) => (
             <Particle
               key={i}
-              delay={i * 0.08}
-              x={(i % 2 === 0 ? 1 : -1) * (i * 15)}
-              randomX={(i % 3 === 0 ? 1 : -1) * 50}
+              delay={i * 0.05}
+              x={(i % 2 === 0 ? 1 : -1) * (i * 12)}
+              randomX={(i % 3 === 0 ? 1 : -1) * 60}
               color={PARTICLE_COLORS[i % PARTICLE_COLORS.length]}
             />
           ))}
 
           <motion.div
-            initial={{ scale: 0, rotate: -10 }}
-            animate={{ scale: 1, rotate: 0 }}
-            exit={{ scale: 0, opacity: 0 }}
-            transition={{ type: 'spring', damping: 15, stiffness: 200, delay: 0.1 }}
-            className="relative bg-zinc-900/95 border border-indigo-500/30 rounded-3xl p-8 max-w-sm mx-4 text-center shadow-2xl shadow-indigo-500/20 overflow-hidden"
+            initial={{ opacity: 0, scale: 0.8, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 20 }}
+            className="w-full max-w-md flex flex-col items-center px-8 text-center"
           >
-            {/* Glow background */}
-            <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/5 via-transparent to-purple-500/5 pointer-events-none" />
-
-            {/* Sparkle icon */}
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.3, type: 'spring', stiffness: 300 }}
-              className="relative inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 mb-4"
-            >
-              {isInvite ? <UserPlus className="h-8 w-8 text-indigo-400" /> : <Sparkles className="h-8 w-8 text-indigo-400" />}
-            </motion.div>
-
-            {/* Heading */}
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="text-3xl font-black bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2"
-            >
-              {isInvite ? (accepted ? 'Welcome Aboard!' : 'Join the Squad!') : matchType === 'dm' ? "It's a Connection!" : "It's a Match!"}
-            </motion.h2>
-
-            {/* Avatars side by side */}
-            {matchedUser && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="flex items-center justify-center gap-4 my-6"
+            {/* Avatars & Connection UI */}
+            <div className="relative flex items-center justify-center mb-16 w-full">
+              {/* Connecting Line */}
+              <div className="absolute top-1/2 left-1/4 right-1/4 h-0.5 bg-indigo-500/50 shadow-[0_0_15px_rgba(99,102,241,0.5)]" />
+              
+              {/* Center Bolt */}
+              <motion.div 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.4, type: 'spring' }}
+                className="absolute z-10 h-12 w-12 rounded-full bg-white flex items-center justify-center shadow-[0_0_30px_rgba(255,255,255,0.8)]"
               >
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center overflow-hidden border-2 border-emerald-400/30">
-                  {currentUserImage ? (
-                    <div className="relative h-full w-full">
+                <Bolt className="h-6 w-6 text-indigo-600 fill-indigo-600" />
+              </motion.div>
+
+              {/* Left Avatar (Current User) */}
+              <motion.div 
+                initial={{ x: -50, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.2, type: 'spring', damping: 12 }}
+                className="relative z-0 group"
+              >
+                <div className="h-28 w-28 rounded-full border-4 border-indigo-500/30 p-1 bg-[#0a0c14]">
+                  <div className="h-full w-full rounded-full overflow-hidden bg-zinc-800 relative shadow-[0_0_40px_rgba(99,102,241,0.2)]">
+                    {currentUserImage ? (
                       <Image src={currentUserImage} alt="You" fill className="object-cover" />
-                    </div>
-                  ) : (
-                    <span className="text-lg font-bold text-white">You</span>
-                  )}
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center text-2xl font-bold text-white bg-indigo-600">
+                        ME
+                      </div>
+                    )}
+                  </div>
                 </div>
-
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.6, type: 'spring' }}
-                  className="h-8 w-8 rounded-full bg-indigo-500/20 flex items-center justify-center"
-                >
-                  <span className="text-lg">{isInvite ? '📩' : '💜'}</span>
-                </motion.div>
-
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center overflow-hidden border-2 border-indigo-400/30">
-                  {matchedUser.image ? (
-                    <div className="relative h-full w-full">
-                      <Image src={matchedUser.image} alt={matchedUser.name} fill className="object-cover" />
-                    </div>
-                  ) : (
-                    <span className="text-lg font-bold text-white">{matchedInitials}</span>
-                  )}
+                {/* Badge */}
+                <div className="absolute -bottom-2 -right-2 px-3 py-1 rounded-lg bg-[#0a0c14] border border-zinc-800 shadow-xl">
+                  <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">
+                    {currentUserTitle?.split(' ')[0] || 'DEV'}
+                  </span>
                 </div>
               </motion.div>
-            )}
 
-            {/* Match/Invite info */}
+              <div className="w-16" /> {/* Spacer for bolt */}
+
+              {/* Right Avatar (Matched User) */}
+              <motion.div 
+                initial={{ x: 50, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.3, type: 'spring', damping: 12 }}
+                className="relative z-0"
+              >
+                <div className="h-28 w-28 rounded-full border-4 border-purple-500/30 p-1 bg-[#0a0c14]">
+                  <div className="h-full w-full rounded-full overflow-hidden bg-zinc-800 relative shadow-[0_0_40px_rgba(168,85,247,0.2)]">
+                    {matchedUser?.image ? (
+                      <Image src={matchedUser.image} alt={matchedUser.name} fill className="object-cover" />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center text-2xl font-bold text-white bg-purple-600">
+                        {matchedInitials}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                {/* Badge */}
+                <div className="absolute -bottom-2 -left-2 px-3 py-1 rounded-lg bg-[#0a0c14] border border-zinc-800 shadow-xl">
+                  <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">
+                    {matchedUser?.title?.split(' ')[0] || 'DES'}
+                  </span>
+                </div>
+              </motion.div>
+            </div>
+
+            {/* Content Section */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.7 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+              className="space-y-4"
             >
-              {isInvite ? (
-                <>
-                  <p className="text-zinc-400 mb-1">
-                    You&apos;ve been invited to join a team for <span className="text-white font-semibold">{hackathonName}</span>
-                  </p>
-                  
-                  {accepted ? (
-                    <div className="flex items-center justify-center gap-2 text-emerald-400 my-6">
-                      <Check className="h-5 w-5" />
-                      <span className="text-sm font-bold uppercase tracking-widest">Invitation Accepted</span>
-                    </div>
-                  ) : (
-                    <div className="space-y-4 mt-6">
-                      <button
-                        onClick={handleAcceptInvite}
-                        disabled={accepting}
-                        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-lg shadow-indigo-600/20 active:scale-95"
-                      >
-                        {accepting ? 'Accepting...' : 'Accept Invitation'}
-                        {!accepting && <ArrowRight className="h-5 w-5" />}
-                      </button>
-                      <button
-                        onClick={onClose}
-                        className="w-full text-zinc-500 hover:text-zinc-300 py-2 text-xs font-bold uppercase tracking-widest transition-colors"
-                      >
-                        Maybe Later
-                      </button>
-                    </div>
-                  )}
-                </>
+              <h2 className="text-5xl md:text-6xl font-black italic text-white tracking-tighter drop-shadow-[0_0_20px_rgba(255,255,255,0.3)] mb-2">
+                IT&apos;S A MATCH!
+              </h2>
+              <p className="text-zinc-400 text-lg md:text-xl font-medium max-w-xs mx-auto leading-relaxed">
+                You and <span className="text-white font-bold">{matchedUser?.name || 'Alex'}</span> are ready to build something great together.
+              </p>
+            </motion.div>
+
+            {/* Actions Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="mt-12 w-full space-y-4"
+            >
+              {isInvite && !accepted ? (
+                <button
+                  onClick={handleAcceptInvite}
+                  disabled={accepting}
+                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-5 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl shadow-indigo-600/20 active:scale-95"
+                >
+                  <UserPlus className="h-6 w-6" />
+                  <span className="text-lg font-black uppercase tracking-widest">Accept & Join</span>
+                </button>
               ) : (
-                <>
-                  <p className="text-zinc-400 mb-1">
-                    You matched with <span className="text-white font-semibold">{matchedUser?.name}</span>
-                  </p>
-                  <p className="text-xs text-zinc-500 mb-6">for {hackathonName}</p>
-
-                  {teamId ? (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-center gap-2 text-emerald-400 mb-4">
-                        <Trophy className="h-4 w-4" />
-                        <span className="text-sm font-medium">A new team has been formed!</span>
-                      </div>
-                      <button
-                        onClick={() => router.push(`/dashboard/teams/${teamId}`)}
-                        className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20"
-                      >
-                        Name Your Team
-                        <ArrowRight className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-center gap-2 text-blue-400 mb-4">
-                        <MessageCircle className="h-4 w-4" />
-                        <span className="text-sm font-medium">A DM chat has been created!</span>
-                      </div>
-                      <button
-                        onClick={() => router.push(`/dashboard/chats/${chatId}`)}
-                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
-                      >
-                        Open Chat
-                        <MessageCircle className="h-4 w-4" />
-                      </button>
-                    </div>
-                  )}
-
-                  <button
-                    onClick={onClose}
-                    className="w-full mt-3 text-sm text-zinc-500 hover:text-zinc-300 py-2 transition-colors"
-                  >
-                    Continue Swiping
-                  </button>
-                </>
+                <button
+                  onClick={() => {
+                    onClose();
+                    if (chatId) router.push(`/dashboard/chats/${chatId}`);
+                    else if (teamId) router.push(`/dashboard/teams/${teamId}`);
+                  }}
+                  className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-5 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl shadow-indigo-600/20 active:scale-95"
+                >
+                  <Send className="h-6 w-6" />
+                  <span className="text-lg font-black uppercase tracking-widest">Send a Message</span>
+                </button>
               )}
+
+              <button
+                onClick={onClose}
+                className="w-full bg-zinc-900/50 hover:bg-zinc-800/50 border border-zinc-800 text-zinc-400 font-bold py-5 rounded-2xl transition-all flex items-center justify-center gap-3 active:scale-95"
+              >
+                <Compass className="h-6 w-6" />
+                <span className="text-lg font-black uppercase tracking-widest">Keep Swiping</span>
+              </button>
             </motion.div>
           </motion.div>
         </motion.div>

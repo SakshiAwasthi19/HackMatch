@@ -28,6 +28,7 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
   const [deckEmpty, setDeckEmpty] = useState(false);
   const [matchResult, setMatchResult] = useState<SwipeResult | null>(null);
   const [connectingUser, setConnectingUser] = useState<SwipeDeckUser | null>(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState<{ title?: string | null } | null>(null);
 
   // Fetch hackathon info + swipe deck
   useEffect(() => {
@@ -66,6 +67,13 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
           })));
           setDeckEmpty(deckData.length === 0);
         }, 0);
+
+        // Fetch current user profile for badges
+        const profileRes = await apiFetch('/api/profile');
+        if (profileRes.ok) {
+          const profileData = await profileRes.json();
+          setCurrentUserProfile(profileData);
+        }
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
@@ -204,6 +212,7 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
           chatId={matchResult.chatId || ''}
           hackathonName={hackathon?.name || ''}
           currentUserImage={session.user?.image || null}
+          currentUserTitle={currentUserProfile?.title}
           onClose={() => setMatchResult(null)}
         />
       )}

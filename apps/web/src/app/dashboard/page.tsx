@@ -31,6 +31,7 @@ export default function Dashboard() {
   const [matchData, setMatchData] = useState<SwipeResult | null>(null);
   const [targetChatUserId, setTargetChatUserId] = useState<string | null>(null);
   const [swipeRefreshKey, setSwipeRefreshKey] = useState(0);
+  const [currentUserProfile, setCurrentUserProfile] = useState<{ title?: string | null } | null>(null);
   const [isHydrating, setIsHydrating] = useState(true);
 
   useEffect(() => {
@@ -43,18 +44,28 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!isPending && !isHydrating && !session) {
-      // Final check: if no session but we have a bearer token, 
-      // we might still be authenticated for API calls.
-      // But for the UI, we usually need the session.
       const hasToken = typeof window !== "undefined" && !!localStorage.getItem('bearer_token');
       
       if (!hasToken) {
         router.push('/login');
       } else {
-        // If we have a token but no session, the cookie might be blocked.
-        // We'll allow them to stay for now as apiFetch will use the token.
         console.warn('No session found, but bearer token exists. Mobile cookie issue?');
       }
+    }
+
+    if (session) {
+      const fetchProfile = async () => {
+        try {
+          const res = await apiFetch('/api/profile');
+          if (res.ok) {
+            const data = await res.json();
+            setCurrentUserProfile(data);
+          }
+        } catch (e) {
+          console.error('Failed to fetch current user profile:', e);
+        }
+      };
+      void fetchProfile();
     }
   }, [session, isPending, isHydrating, router]);
 
@@ -210,6 +221,7 @@ export default function Dashboard() {
           teamId={matchData.teamId}
           hackathonName={matchData.hackathonName || ''}
           currentUserImage={displayUser?.image}
+          currentUserTitle={currentUserProfile?.title}
           matchType={matchData.matchType}
           relatedId={matchData.relatedId}
           onClose={() => setMatchData(null)} 
