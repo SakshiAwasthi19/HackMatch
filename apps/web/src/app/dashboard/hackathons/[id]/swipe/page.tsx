@@ -8,6 +8,7 @@ import { ArrowLeft, Loader2, RefreshCw, Sparkles } from 'lucide-react';
 import SwipeDeck from '@/components/swipe/SwipeDeck';
 import { SwipeResult, SwipeDeckUser } from '@/lib/types';
 import MatchOverlay from '@/components/match/MatchOverlay';
+import ConnectInviteModal from '@/components/dashboard/ConnectInviteModal';
 
 interface Hackathon {
   name: string;
@@ -26,6 +27,7 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
   const [error, setError] = useState<string | null>(null);
   const [deckEmpty, setDeckEmpty] = useState(false);
   const [matchResult, setMatchResult] = useState<SwipeResult | null>(null);
+  const [connectingUser, setConnectingUser] = useState<SwipeDeckUser | null>(null);
 
   // Fetch hackathon info + swipe deck
   useEffect(() => {
@@ -184,6 +186,7 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
               <SwipeDeck
                 users={users}
                 onSwipe={handleSwipe}
+                onConnect={(user) => setConnectingUser(user)}
                 onEmpty={handleEmpty}
                 onMatch={handleMatch}
               />
@@ -204,6 +207,15 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
           onClose={() => setMatchResult(null)}
         />
       )}
+
+      <ConnectInviteModal
+        isOpen={!!connectingUser}
+        onClose={() => setConnectingUser(null)}
+        user={connectingUser}
+        onSuccess={() => {
+          // Success behavior (card usually flies away anyway)
+        }}
+      />
     </div>
   );
 }

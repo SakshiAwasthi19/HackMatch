@@ -10,6 +10,7 @@ import SwipeCard from './SwipeCard';
 interface SwipeDeckProps {
   users: SwipeDeckUser[];
   onSwipe: (userId: string, type: 'LEFT' | 'RIGHT') => Promise<SwipeResult>;
+  onConnect: (user: SwipeDeckUser) => void;
   onEmpty: () => void;
   onMatch: (result: SwipeResult) => void;
   onViewProfile?: (user: SwipeDeckUser) => void;
@@ -38,6 +39,7 @@ const flyOut = (dir: number) => ({
 export default function SwipeDeck({ 
   users, 
   onSwipe, 
+  onConnect,
   onEmpty, 
   onMatch,
   onViewProfile 
@@ -158,30 +160,61 @@ export default function SwipeDeck({
         )}
       </div>
 
-      {/* Action Buttons - Premium Design */}
+      {/* Action Buttons - Premium Design Split */}
       {currentIndex < users.length && (
-        <div className="flex items-center gap-10">
+        <div className="flex items-center gap-6">
+          {/* Dislike/Pass */}
           <button
             onClick={() => triggerSwipe(-1)}
             disabled={animating}
-            className="group h-16 w-16 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center
+            className="group h-14 w-14 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center
                        hover:border-red-500/50 hover:bg-red-500/5 hover:scale-110
                        active:scale-95 transition-all duration-300 shadow-xl"
           >
-            <X className="h-8 w-8 text-zinc-500 group-hover:text-red-400 transition-colors" />
+            <X className="h-6 w-6 text-zinc-500 group-hover:text-red-400 transition-colors" />
           </button>
 
+          {/* Collaborate (Low Friction) */}
           <button
             onClick={() => triggerSwipe(1)}
             disabled={animating}
-            className="group h-20 w-20 rounded-full bg-indigo-600 flex items-center justify-center
-                       hover:bg-indigo-500 hover:scale-110 hover:shadow-[0_0_30px_rgba(79,70,229,0.4)]
+            className="group h-16 px-6 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center gap-2
+                       hover:border-zinc-600 hover:bg-zinc-800 hover:scale-105
+                       active:scale-95 transition-all duration-300 shadow-xl"
+          >
+            <Users className="h-6 w-6 text-zinc-400 group-hover:text-white transition-colors" />
+            <span className="text-[10px] font-black text-zinc-500 group-hover:text-white uppercase tracking-widest">Collaborate</span>
+          </button>
+
+          {/* Connect (High Friction / Invite) */}
+          <button
+            onClick={() => onConnect(users[currentIndex])}
+            disabled={animating}
+            className="group h-16 px-8 rounded-2xl bg-indigo-600 flex items-center justify-center gap-2
+                       hover:bg-indigo-500 hover:scale-105 hover:shadow-[0_0_30px_rgba(79,70,229,0.4)]
                        active:scale-95 transition-all duration-300 shadow-xl shadow-indigo-600/20"
           >
-            <Heart className="h-10 w-10 text-white fill-white/10 group-hover:fill-white/20 transition-all" />
+            <Rocket className="h-6 w-6 text-white group-hover:animate-bounce" />
+            <span className="text-[10px] font-black text-white uppercase tracking-widest">Connect</span>
           </button>
         </div>
       )}
     </div>
+  );
+}
+
+function Users({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
+function Rocket({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.71-2.13.71-2.13l-4.42-3.58s-1.29 0-2.13.71z" /><path d="M15 9l-9 9" /><path d="M16 4l-4 4" /><path d="M2 22l5.5-5.5" /><path d="M9 15l1-1" /><path d="M18.5 2.5c.34-.34.8-.5 1.5-.5s1.16.16 1.5.5c.34.34.5.8.5 1.5s-.16 1.16-.5 1.5c-.34.34-.8.5-1.5.5s-1.16-.16-1.5-.5c-.34-.34-.5-.8-.5-1.5s.16-1.16.5-1.5z" />
+    </svg>
   );
 }

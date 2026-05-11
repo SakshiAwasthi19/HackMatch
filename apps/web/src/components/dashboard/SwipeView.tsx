@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Zap, Filter } from 'lucide-react';
 import SwipeDeck from '@/components/swipe/SwipeDeck';
 import ProfileModal from '../shared/ProfileModal';
+import ConnectInviteModal from './ConnectInviteModal';
 import { apiFetch } from '@/lib/auth-client';
 import { Hackathon, SwipeResult, SwipeDeckUser } from '@/lib/types';
 import { useCallback } from 'react';
@@ -17,17 +18,8 @@ export default function SwipeView({ selectedHackathonId: initialHackathonId, onM
   const [users, setUsers] = useState<SwipeDeckUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewingUser, setViewingUser] = useState<{
-    name: string;
-    image: string | null;
-    title: string | null;
-    bio: string | null;
-    college: string | null;
-    city: string | null;
-    linkedinUrl: string | null;
-    githubUrl: string | null;
-    skills: string[] | { skill: { name: string } }[];
-  } | null>(null);
+  const [viewingUser, setViewingUser] = useState<SwipeDeckUser | null>(null);
+  const [connectingUser, setConnectingUser] = useState<SwipeDeckUser | null>(null);
   const [hackathons, setHackathons] = useState<Hackathon[]>([]);
   const [activeHackathonId, setActiveHackathonId] = useState<string | null>(initialHackathonId);
 
@@ -164,11 +156,6 @@ export default function SwipeView({ selectedHackathonId: initialHackathonId, onM
           <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-center max-w-lg mx-auto">
             <p className="text-lg font-bold mb-2">Deck Loading Failed</p>
             <p className="text-sm opacity-80">{error}</p>
-            {error.includes('fetch') && (
-              <p className="mt-2 text-xs text-red-400/60 font-medium">
-                Please ensure the backend server is running on port 3001
-              </p>
-            )}
             <button 
               onClick={fetchSwipeDeck} 
               className="mt-6 px-6 py-2 bg-red-500 hover:bg-red-600 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-500/20"
@@ -191,7 +178,8 @@ export default function SwipeView({ selectedHackathonId: initialHackathonId, onM
             <SwipeDeck 
               key={activeHackathonId || 'global'} 
               users={users} 
-              onSwipe={handleSwipe} 
+              onSwipe={handleSwipe}
+              onConnect={(user) => setConnectingUser(user)}
               onEmpty={() => setUsers([])} 
               onMatch={(result) => onMatch?.(result)} 
               onViewProfile={(user) => setViewingUser(user)}
@@ -204,6 +192,15 @@ export default function SwipeView({ selectedHackathonId: initialHackathonId, onM
         isOpen={!!viewingUser} 
         onClose={() => setViewingUser(null)} 
         user={viewingUser} 
+      />
+
+      <ConnectInviteModal
+        isOpen={!!connectingUser}
+        onClose={() => setConnectingUser(null)}
+        user={connectingUser}
+        onSuccess={() => {
+          // Success behavior
+        }}
       />
     </div>
   );
