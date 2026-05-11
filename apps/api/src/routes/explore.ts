@@ -59,7 +59,7 @@ router.get('/swipe-deck', requiredAuth, async (req: any, res: Response) => {
       },
       select: { senderId: true }
     });
-    const prioritizedIds = potentialMatchSwipes.map(s => s.senderId);
+    const prioritizedIds = potentialMatchSwipes.map((s: { senderId: string }) => s.senderId);
 
     // 4. Fetch users with pagination
     // We fetch a bit more than 'take' to ensure we can sort and still have enough
@@ -116,7 +116,7 @@ router.get('/swipe-deck', requiredAuth, async (req: any, res: Response) => {
     }));
 
     // Sort: Prioritized users first, then by lastActiveAt (which they already are from the query)
-    usersWithStatus.sort((a, b) => {
+    usersWithStatus.sort((a: any, b: any) => {
       if (a.isPrioritized && !b.isPrioritized) return -1;
       if (!a.isPrioritized && b.isPrioritized) return 1;
       return 0;
