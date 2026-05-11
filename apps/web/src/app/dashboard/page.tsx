@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { authClient } from '@/lib/auth-client';
 import TopNavbar, { TabType } from '@/components/dashboard/TopNavbar';
@@ -20,7 +20,7 @@ import MatchOverlay from '@/components/match/MatchOverlay';
 import { Hackathon, AdminTab, SwipeResult } from '@/lib/types';
 import { useSearchParams } from 'next/navigation';
 
-export default function Dashboard() {
+function DashboardContent() {
   const router = useRouter();
   const { data: session, isPending } = authClient.useSession();
   const [activeTab, setActiveTab] = useState<TabType>('hackathons');
@@ -46,11 +46,8 @@ export default function Dashboard() {
     const userId = searchParams.get('userId');
 
     if (tab) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveTab(tab);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (chatId) setTargetChatId(chatId);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (userId) setTargetChatUserId(userId);
     }
   }, [searchParams]);
@@ -256,5 +253,17 @@ export default function Dashboard() {
         />
       )}
     </div>
+  );
+}
+
+export default function Dashboard() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-screen items-center justify-center bg-black">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   );
 }
