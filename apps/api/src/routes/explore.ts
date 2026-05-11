@@ -31,14 +31,14 @@ router.get('/swipe-deck', requiredAuth, async (req: any, res: Response) => {
     const excludedIds = [userId, ...swipedRecords.map((s: any) => s.receiverId)];
 
     // 2. Fetch eligible users
-    // Criteria: Active in last 7 days, not the current user, not already swiped
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    const users = await prisma.user.findMany({
+    // Criteria: Active in last 30 days, not the current user, not already swiped
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    let users = await prisma.user.findMany({
       where: {
         id: { notIn: excludedIds },
-        lastActiveAt: { gte: sevenDaysAgo },
+        lastActiveAt: { gte: thirtyDaysAgo },
       },
       include: {
         skills: {
@@ -49,6 +49,23 @@ router.get('/swipe-deck', requiredAuth, async (req: any, res: Response) => {
       },
       take: 20,
     });
+
+    // Fallback: If no users active in last 30 days, show all users not yet swiped
+    if (users.length === 0) {
+      users = await prisma.user.findMany({
+        where: {
+          id: { notIn: excludedIds },
+        },
+        include: {
+          skills: {
+            include: {
+              skill: true,
+            },
+          },
+        },
+        take: 20,
+      });
+    }
 
     res.json(users);
   } catch (err) {

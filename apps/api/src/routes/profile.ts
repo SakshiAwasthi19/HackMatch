@@ -13,8 +13,9 @@ router.get('/', async (req: any, res: Response) => {
     const session = await auth.api.getSession({ headers: req.headers });
     if (!session) return res.status(401).json({ message: 'Unauthorized' });
 
-    const user = await prisma.user.findUnique({
+    const user = await prisma.user.update({
       where: { id: session.user.id },
+      data: { lastActiveAt: new Date() },
       include: {
         skills: {
           include: { skill: true },
