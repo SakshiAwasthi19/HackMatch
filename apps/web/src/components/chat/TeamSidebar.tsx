@@ -29,14 +29,12 @@ interface TeamMember {
 
 interface TeamSidebarProps {
   teamId: string;
-  teamName: string | null;
   members: TeamMember[];
   resources: ProjectResource[];
   onRefresh: () => void;
-  isLeader: boolean;
 }
 
-export default function TeamSidebar({ teamId, teamName, members, resources, onRefresh, isLeader }: TeamSidebarProps) {
+export default function TeamSidebar({ teamId, members, resources, onRefresh }: TeamSidebarProps) {
   const [isAddingResource, setIsAddingResource] = useState(false);
   const [newResource, setNewResource] = useState({ title: '', url: '', type: 'LINK' });
   const [isSubmitting, setIsSubmitting] = useState(false);

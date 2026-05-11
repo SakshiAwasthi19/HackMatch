@@ -305,11 +305,9 @@ export default function MessagesView({ initialUserId, initialChatId }: { initial
       {selectedChat?.type === 'GROUP' && selectedChat.team && (
         <TeamSidebar 
           teamId={selectedChat.team.id}
-          teamName={selectedChat.team.name}
           members={selectedChat.members as TeamMember[]}
           resources={selectedChat.team.resources || []}
           onRefresh={() => setRefreshKey(prev => prev + 1)}
-          isLeader={selectedChat.members.find(m => m.userId === session?.user?.id)?.role === 'LEADER'}
         />
       )}
     </div>

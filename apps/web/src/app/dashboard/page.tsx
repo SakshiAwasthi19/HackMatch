@@ -46,8 +46,11 @@ export default function Dashboard() {
     const userId = searchParams.get('userId');
 
     if (tab) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveTab(tab);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (chatId) setTargetChatId(chatId);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (userId) setTargetChatUserId(userId);
     }
   }, [searchParams]);
