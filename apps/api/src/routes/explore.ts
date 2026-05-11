@@ -60,7 +60,7 @@ router.get('/swipe-deck', requiredAuth, async (req: any, res: Response) => {
 
     const [sentSwipes, receivedSwipes, matches] = await Promise.all([
       prisma.swipe.findMany({
-        where: { senderId: userId, receiverId: { in: userIds }, hackathonId: null },
+        where: { senderId: userId, receiverId: { in: userIds }, hackathonId: null, type: 'RIGHT' },
       }),
       prisma.swipe.findMany({
         where: { receiverId: userId, senderId: { in: userIds }, hackathonId: null, type: 'RIGHT' },
@@ -68,8 +68,8 @@ router.get('/swipe-deck', requiredAuth, async (req: any, res: Response) => {
       prisma.match.findMany({
         where: {
           OR: [
-            { user1Id: userId, user2Id: { in: userIds }, hackathonId: null },
-            { user2Id: userId, user1Id: { in: userIds }, hackathonId: null },
+            { user1Id: userId, user2Id: { in: userIds } },
+            { user2Id: userId, user1Id: { in: userIds } },
           ]
         }
       })
