@@ -40,8 +40,6 @@ export default function TeamSidebar({ teamId, teamName, members, resources, onRe
   const [isAddingResource, setIsAddingResource] = useState(false);
   const [newResource, setNewResource] = useState({ title: '', url: '', type: 'LINK' });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [tempName, setTempName] = useState(teamName || '');
 
   // Calculate team stack (union of all member skills)
   const teamStack = Array.from(new Set(
@@ -81,25 +79,6 @@ export default function TeamSidebar({ teamId, teamName, members, resources, onRe
     }
   };
 
-  const handleUpdateName = async () => {
-    if (!tempName.trim() || tempName === teamName) {
-      setIsEditingName(false);
-      return;
-    }
-
-    try {
-      const res = await apiFetch(`/api/teams/${teamId}/name`, {
-        method: 'PUT',
-        body: JSON.stringify({ name: tempName.trim() })
-      });
-      if (res.ok) {
-        onRefresh();
-        setIsEditingName(false);
-      }
-    } catch (err) {
-      console.error('Failed to update team name:', err);
-    }
-  };
 
   const getResourceIcon = (type: string, url: string) => {
     if (url.includes('github.com')) return <Github className="w-4 h-4" />;
@@ -113,29 +92,9 @@ export default function TeamSidebar({ teamId, teamName, members, resources, onRe
     <div className="w-80 border-l border-white/5 bg-[#0d0d14] flex flex-col h-full overflow-y-auto no-scrollbar pb-10">
       {/* Team Header Info */}
       <div className="p-6 border-b border-white/5">
-        {isEditingName && isLeader ? (
-          <div className="space-y-2">
-            <input
-              type="text"
-              value={tempName}
-              onChange={(e) => setTempName(e.target.value)}
-              className="w-full bg-zinc-900 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white focus:outline-none focus:border-indigo-500"
-              autoFocus
-              onBlur={handleUpdateName}
-              onKeyDown={(e) => e.key === 'Enter' && handleUpdateName()}
-            />
-          </div>
-        ) : (
-          <h3 
-            className={`text-lg font-bold text-white tracking-tight ${isLeader ? 'cursor-pointer hover:text-indigo-400 transition-colors' : ''}`}
-            onClick={() => isLeader && setIsEditingName(true)}
-          >
-            {teamName || 'Untitled Team'}
-          </h3>
-        )}
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex items-center gap-2">
           <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+          <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
             {members.length} Members • Online
           </span>
         </div>
