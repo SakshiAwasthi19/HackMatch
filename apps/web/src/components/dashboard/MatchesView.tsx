@@ -32,11 +32,12 @@ export default function MatchesView({ initialHackathonId, onTabChange }: Matches
       const res = await apiFetch(url);
       if (res.ok) {
         setMatches(await res.json());
+      } else {
+        console.error('API Error:', res.status, res.statusText);
       }
     } catch (err) {
       console.error('Failed to fetch matches:', err);
     } finally {
-      setLoading(true); // Wait, this should be false!
       setLoading(false);
     }
   }, [initialHackathonId]);
