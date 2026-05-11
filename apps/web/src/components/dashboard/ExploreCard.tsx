@@ -1,16 +1,19 @@
 'use client';
 
 import React from 'react';
-import { Mail, ShieldCheck, Star, MessageSquare } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 import Image from 'next/image';
 import { SwipeDeckUser } from '@/lib/types';
 import { motion } from 'framer-motion';
 
 interface ExploreCardProps {
-  user: SwipeDeckUser & { receivedRequest?: boolean };
+  user: SwipeDeckUser & { 
+    receivedRequest?: boolean;
+    isMatched?: boolean;
+    hasSentRequest?: boolean;
+  };
   onConnect: (userId: string) => void;
   onCollaborate: (userId: string) => void;
-  onRequest: (userId: string) => void;
   onMessage: (userId: string) => void;
   onViewProfile: (user: SwipeDeckUser) => void;
 }
@@ -19,10 +22,11 @@ export default function ExploreCard({
   user,
   onConnect,
   onCollaborate,
-  onRequest,
   onMessage,
   onViewProfile
 }: ExploreCardProps) {
+  const [isPending, setIsPending] = React.useState(false);
+  
   const initials = user.name
     .split(' ')
     .map((n) => n[0])
@@ -30,117 +34,128 @@ export default function ExploreCard({
     .toUpperCase()
     .slice(0, 2);
 
-  const isCollaborate = user.receivedRequest;
+  const isCollaborate = user.receivedRequest && !user.isMatched && !user.hasSentRequest;
+  const isConnected = user.isMatched;
+  const isRequested = user.hasSentRequest && !user.isMatched;
+
+  const handleConnect = async () => {
+    setIsPending(true);
+    try {
+      await onConnect(user.id);
+    } finally {
+      setIsPending(false);
+    }
+  };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -5 }}
-      className="group relative bg-zinc-900/50 border border-zinc-800 rounded-3xl overflow-hidden hover:border-indigo-500/50 transition-all duration-300 shadow-xl"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="group relative bg-zinc-900/40 border border-zinc-800/50 rounded-[2rem] overflow-hidden hover:bg-zinc-900/60 transition-all duration-500 shadow-2xl"
     >
-      {/* Banner / Header Image Area */}
-      <div className="h-28 w-full bg-gradient-to-br from-indigo-900/40 via-zinc-900 to-zinc-900 relative">
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
+      {/* Banner Area */}
+      <div className="h-24 w-full bg-gradient-to-br from-indigo-950/30 to-zinc-950 relative border-b border-zinc-800/30">
+        <div className="absolute inset-0 opacity-5" style={{ backgroundImage: "radial-gradient(circle at 2px 2px, white 1px, transparent 0)", backgroundSize: "24px 24px" }} />
       </div>
 
-      {/* Avatar - Overlapping */}
-      <div className="absolute top-16 left-6 ring-4 ring-zinc-950 rounded-2xl overflow-hidden shadow-2xl">
-        <div className="h-16 w-16 bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+      {/* Avatar */}
+      <div className="absolute top-12 left-6">
+        <div className="h-20 w-20 bg-zinc-900 ring-[6px] ring-zinc-950 rounded-3xl overflow-hidden shadow-2xl relative">
           {user.image ? (
-            <div className="relative h-full w-full">
-              <Image src={user.image} alt={user.name} fill className="object-cover" />
-            </div>
+            <Image src={user.image} alt={user.name} fill className="object-cover" />
           ) : (
-            <span className="text-xl font-black text-white">{initials}</span>
+            <div className="h-full w-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-2xl font-black text-white">
+              {initials}
+            </div>
           )}
         </div>
       </div>
 
       {/* Content */}
-      <div className="pt-10 p-6">
-        <div className="flex items-start justify-between mb-1">
-          <div>
+      <div className="pt-12 p-6">
+        <div className="flex items-start justify-between mb-3">
+          <div className="max-w-[70%]">
             <h3 
               onClick={() => onViewProfile(user)}
-              className="text-xl font-black text-white group-hover:text-indigo-400 transition-colors cursor-pointer"
+              className="text-xl font-black text-white truncate cursor-pointer hover:text-indigo-400 transition-colors"
             >
               {user.name}
             </h3>
-            <p className="text-sm text-zinc-400 font-medium">{user.title || 'Hacker'}</p>
+            <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider truncate">
+              {user.college || 'Builder'} • {user.city || 'Global'}
+            </p>
           </div>
           
-          {/* Badge */}
-          <div className="flex gap-2">
-            {user.role === 'ADMIN' ? (
-              <div className="px-2 py-0.5 bg-indigo-500/10 border border-indigo-500/20 rounded-md flex items-center gap-1">
-                <ShieldCheck className="h-3 w-3 text-indigo-400" />
-                <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-tighter">Verified</span>
-              </div>
-            ) : (
-              <div className="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md flex items-center gap-1">
-                <Star className="h-3 w-3 text-emerald-400" />
-                <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-tighter">Top Talent</span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Bio */}
-        <p className="text-xs text-zinc-500 leading-relaxed mb-4 line-clamp-2 min-h-[32px]">
-          {user.bio || "Building the future of decentralized tech. Hacker at heart, veteran of multiple hackathons."}
-        </p>
-
-        {/* Skills */}
-        <div className="flex flex-wrap gap-1.5 mb-6">
-          {user.skills && user.skills.length > 0 ? (
-            (user.skills as { skill: { id: string; name: string } }[]).slice(0, 3).map((s, idx) => (
-              <span key={s.skill?.id || idx} className="px-2 py-0.5 bg-zinc-800/50 text-[10px] text-zinc-400 border border-zinc-700/50 rounded-md font-mono uppercase tracking-tighter">
-                {s.skill?.name || (typeof s === 'string' ? s : 'Skill')}
-              </span>
-            ))
-          ) : (
-            <span className="px-2 py-0.5 bg-zinc-800/50 text-[10px] text-zinc-400 border border-zinc-700/50 rounded-md font-mono uppercase tracking-tighter">
-              Builder
-            </span>
+          {isConnected && (
+            <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-1.5">
+              <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Connected</span>
+            </div>
           )}
         </div>
 
-        {/* Actions */}
+        <p className="text-sm text-zinc-400 leading-relaxed mb-6 line-clamp-2 h-10 font-medium">
+          {user.bio || "Crafting digital experiences and solving complex problems with code. Passionate about innovation and collaboration."}
+        </p>
+
+        <div className="flex flex-wrap gap-2 mb-8">
+          {(user.skills as { skill: { id: string; name: string } }[] || []).slice(0, 3).map((s, idx) => (
+            <span key={s.skill?.id || idx} className="px-2.5 py-1 bg-zinc-800/30 text-[10px] text-zinc-400 border border-zinc-700/30 rounded-lg font-bold uppercase tracking-tighter">
+              {s.skill?.name || (typeof s === 'string' ? s : 'Hacker')}
+            </span>
+          ))}
+        </div>
+
+        {/* Action Buttons */}
         <div className="flex items-center gap-3">
-          {isCollaborate ? (
+          {isConnected ? (
+            <button
+              onClick={() => onMessage(user.id)}
+              className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-black rounded-2xl transition-all border border-zinc-700 flex items-center justify-center gap-2"
+            >
+              <MessageSquare className="h-4 w-4" />
+              Send Message
+            </button>
+          ) : isRequested ? (
+            <button
+              disabled
+              className="flex-1 py-3 bg-zinc-800/50 text-zinc-500 text-xs font-black rounded-2xl border border-zinc-800 cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              Requested
+            </button>
+          ) : isPending ? (
+            <button
+              disabled
+              className="flex-1 py-3 bg-indigo-600/50 text-white text-xs font-black rounded-2xl border border-indigo-500/50 cursor-wait flex items-center justify-center gap-2"
+            >
+              <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Pending
+            </button>
+          ) : isCollaborate ? (
             <button
               onClick={() => onCollaborate(user.id)}
-              className="flex-1 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-black rounded-xl transition-all shadow-lg shadow-purple-600/20 flex items-center justify-center gap-2"
+              className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:scale-[1.02] active:scale-95 text-white text-xs font-black rounded-2xl transition-all shadow-xl shadow-indigo-600/20 flex items-center justify-center gap-2"
             >
-              <Zap className="h-3.5 w-3.5" />
+              <Zap className="h-4 w-4" />
               Collaborate
             </button>
           ) : (
-            <>
-              <button
-                onClick={() => onConnect(user.id)}
-                className="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black rounded-xl transition-all shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2"
-              >
-                <Zap className="h-3.5 w-3.5" />
-                Connect
-              </button>
-              <button
-                onClick={() => onRequest(user.id)}
-                className="flex-1 py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-black rounded-xl transition-all shadow-lg shadow-purple-600/20 flex items-center justify-center gap-2"
-              >
-                <Mail className="h-3.5 w-3.5" />
-                Request
-              </button>
-            </>
+            <button
+              onClick={handleConnect}
+              className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 hover:scale-[1.02] active:scale-95 text-white text-xs font-black rounded-2xl transition-all shadow-xl shadow-indigo-600/20 flex items-center justify-center gap-2"
+            >
+              Connect
+            </button>
           )}
           
-          <button
-            onClick={() => onMessage(user.id)}
-            className="p-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white border border-zinc-700 rounded-xl transition-all"
-          >
-            <MessageSquare className="h-4 w-4" />
-          </button>
+          {!isConnected && (
+            <button
+              onClick={() => onMessage(user.id)}
+              className="p-3 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 rounded-2xl transition-all"
+            >
+              <MessageSquare className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
     </motion.div>

@@ -89,7 +89,7 @@ export interface SwipeResult {
   chatId?: string | null;
   hackathonName?: string;
   matchedUser?: { id: string; name: string; image: string | null };
-  matchType?: 'match' | 'teamInvite';
+  matchType?: 'match' | 'teamInvite' | 'dm';
   relatedId?: string; // Notification ID
 }
 

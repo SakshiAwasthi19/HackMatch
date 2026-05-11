@@ -16,30 +16,33 @@ const requiredAuth = async (req: any, res: Response, next: any) => {
 router.get('/swipe-deck', requiredAuth, async (req: any, res: Response) => {
   try {
     const userId = req.session.user.id;
+    const { skill, page = '1', limit = '20' } = req.query;
+    const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
+    const take = parseInt(limit as string);
 
-    // 1. Get IDs of users already swiped on by this user in Explore mode (hackathonId: null)
-    const swipedRecords = await prisma.swipe.findMany({
-      where: {
-        senderId: userId,
-        hackathonId: null,
-      },
-      select: {
-        receiverId: true,
-      },
-    });
-
-    const excludedIds = [userId, ...swipedRecords.map((s: any) => s.receiverId)];
-
-    // 2. Fetch eligible users
-    // Criteria: Active in last 30 days, not the current user, not already swiped
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    // 1. Define base filter: Not the current user + active in last 7 days
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     
-    let users = await prisma.user.findMany({
-      where: {
-        id: { notIn: excludedIds },
-        lastActiveAt: { gte: thirtyDaysAgo },
-      },
+    const where: any = {
+      id: { not: userId },
+      lastActiveAt: { gte: sevenDaysAgo },
+    };
+
+    // 2. Add skill filter if provided
+    if (skill) {
+      where.skills = {
+        some: {
+          skill: {
+            name: { equals: skill as string, mode: 'insensitive' }
+          }
+        }
+      };
+    }
+
+    // 3. Fetch users with pagination
+    const users = await prisma.user.findMany({
+      where,
       include: {
         skills: {
           include: {
@@ -47,49 +50,61 @@ router.get('/swipe-deck', requiredAuth, async (req: any, res: Response) => {
           },
         },
       },
-      take: 20,
+      orderBy: { lastActiveAt: 'desc' },
+      skip,
+      take,
     });
 
-    // Fallback: If no users active in last 30 days, show all users not yet swiped
-    if (users.length === 0) {
-      users = await prisma.user.findMany({
+    // 4. Fetch relationship data for these users to determine button states
+    const userIds = users.map(u => u.id);
+
+    const [sentSwipes, receivedSwipes, matches] = await Promise.all([
+      prisma.swipe.findMany({
+        where: { senderId: userId, receiverId: { in: userIds }, hackathonId: null },
+      }),
+      prisma.swipe.findMany({
+        where: { receiverId: userId, senderId: { in: userIds }, hackathonId: null, type: 'RIGHT' },
+      }),
+      prisma.match.findMany({
         where: {
-          id: { notIn: excludedIds },
-        },
-        include: {
-          skills: {
-            include: {
-              skill: true,
-            },
-          },
-        },
-        take: 20,
-      });
-    }
+          OR: [
+            { user1Id: userId, user2Id: { in: userIds }, hackathonId: null },
+            { user2Id: userId, user1Id: { in: userIds }, hackathonId: null },
+          ]
+        }
+      })
+    ]);
 
-    // 3. Get incoming swipes from these users to identify "Collaborate" opportunities
-    const incomingSwipes = await prisma.swipe.findMany({
-      where: {
-        receiverId: userId,
-        senderId: { in: users.map((u: any) => u.id) },
-        type: 'RIGHT',
-      },
-      select: {
-        senderId: true,
-      }
-    });
+    const sentIds = new Set(sentSwipes.map(s => s.receiverId));
+    const receivedIds = new Set(receivedSwipes.map(s => s.senderId));
+    const matchedIds = new Set([
+      ...matches.map(m => m.user1Id === userId ? m.user2Id : m.user1Id)
+    ]);
 
-    const incomingSenderIds = new Set(incomingSwipes.map((s: any) => s.senderId));
-
-    const usersWithStatus = users.map((user: any) => ({
+    // 5. Merge status into user objects
+    const usersWithStatus = users.map(user => ({
       ...user,
-      receivedRequest: incomingSenderIds.has(user.id),
+      isMatched: matchedIds.has(user.id),
+      hasSentRequest: sentIds.has(user.id),
+      receivedRequest: receivedIds.has(user.id),
     }));
 
     res.json(usersWithStatus);
   } catch (err) {
     console.error('Error fetching explore deck:', err);
     res.status(500).json({ message: 'Error fetching explore deck' });
+  }
+});
+
+// GET /api/explore/skills
+router.get('/skills', requiredAuth, async (req: any, res: Response) => {
+  try {
+    const skills = await prisma.skill.findMany({
+      orderBy: { name: 'asc' },
+    });
+    res.json(skills);
+  } catch (err) {
+    res.status(500).json({ message: 'Error fetching skills' });
   }
 });
 

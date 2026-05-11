@@ -16,7 +16,7 @@ interface MatchOverlayProps {
   currentUserImage?: string | null;
   onClose: () => void;
   // Invitation specific
-  matchType?: 'match' | 'teamInvite';
+  matchType?: 'match' | 'teamInvite' | 'dm';
   relatedId?: string; // Notification ID
 }
 
@@ -141,7 +141,7 @@ export default function MatchOverlay({
               transition={{ delay: 0.4 }}
               className="text-3xl font-black bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2"
             >
-              {isInvite ? (accepted ? 'Welcome Aboard!' : 'Join the Squad!') : "It's a Match!"}
+              {isInvite ? (accepted ? 'Welcome Aboard!' : 'Join the Squad!') : matchType === 'dm' ? "It's a Connection!" : "It's a Match!"}
             </motion.h2>
 
             {/* Avatars side by side */}
