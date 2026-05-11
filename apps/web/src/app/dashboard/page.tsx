@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic';
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import TopNavbar, { TabType } from '@/components/dashboard/TopNavbar';
 import HackathonList from '@/components/dashboard/HackathonList';
