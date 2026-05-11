@@ -150,7 +150,7 @@ export default function ExploreCard({
           
           {!isConnected && (
             <button
-              onClick={() => onMessage(user.id)}
+              onClick={() => alert("Please Connect or Collaborate with this user first to start a chat!")}
               className="p-3 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 rounded-2xl transition-all"
             >
               <MessageSquare className="h-4 w-4" />
