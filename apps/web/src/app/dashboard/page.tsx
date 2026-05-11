@@ -131,7 +131,7 @@ export default function Dashboard() {
         onShowMatch={(data) => setMatchData(data)}
       />
       
-      <main className={`flex-1 w-full ${activeTab === 'messages' || activeTab === 'admin' ? 'max-w-none p-0' : 'max-w-7xl mx-auto p-4 sm:p-6 lg:p-8'}`}>
+      <main className="flex-1 w-full min-h-0 flex flex-col">
         {loadingDetail && (
           <div className="flex items-center justify-center py-20">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
@@ -194,9 +194,7 @@ export default function Dashboard() {
             )}
 
             {activeTab === 'teams' && (
-              <div className="max-w-4xl mx-auto py-8">
-                <TeamManager />
-              </div>
+              <TeamManager />
             )}
 
             {activeTab === 'messages' && (

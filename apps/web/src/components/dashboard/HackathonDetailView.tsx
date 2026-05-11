@@ -38,7 +38,7 @@ export default function HackathonDetailView({ hackathon, onBack, onFindTeam, onT
   }) : 'TBA';
 
   return (
-    <div className="space-y-12 animate-in fade-in duration-700">
+    <div className="w-full px-6 sm:px-8 lg:px-12 py-8 space-y-12 animate-in fade-in duration-700">
       {/* Navigation Header */}
       <div className="flex items-center justify-between mb-8">
         <button 

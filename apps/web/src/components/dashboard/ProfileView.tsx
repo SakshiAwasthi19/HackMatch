@@ -423,7 +423,7 @@ export default function ProfileView() {
   };
 
   return (
-    <div className="animate-in fade-in duration-500">
+    <div className="w-full px-6 sm:px-8 lg:px-12 py-8 animate-in fade-in duration-500">
       {/* Page Header */}
       <div className="mb-8">
         <h1 className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-white via-zinc-200 to-zinc-500 bg-clip-text text-transparent">

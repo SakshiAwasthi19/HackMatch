@@ -114,7 +114,7 @@ export default function TeamManager() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="w-full px-6 sm:px-8 lg:px-12 py-8 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-black text-white flex items-center gap-3">

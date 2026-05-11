@@ -154,7 +154,7 @@ export default function ExploreView({ onMatch, onStartChat }: ExploreViewProps) 
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div className="w-full px-6 sm:px-8 lg:px-12 py-8">
       {/* Header Section */}
       <div className="mb-10">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">

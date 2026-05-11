@@ -196,7 +196,7 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto p-8 bg-gradient-to-b from-[#0a0a0c] to-black">
+      <div className="flex-1 overflow-y-auto px-6 sm:px-8 lg:px-12 py-8 bg-gradient-to-b from-[#0a0a0c] to-black">
         {activeTab === 'hackathons' && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

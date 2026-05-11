@@ -56,7 +56,7 @@ export default function MatchesView({ initialHackathonId, onTabChange }: Matches
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="w-full px-6 sm:px-8 lg:px-12 py-8 space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold text-zinc-900 dark:text-white tracking-tight">Your Matches</h2>

@@ -112,7 +112,7 @@ export default function SwipeView({ selectedHackathonId: initialHackathonId, onM
   };
 
   return (
-    <div className="w-full mx-auto space-y-12 px-4 pb-20 flex flex-col items-center">
+    <div className="flex-1 w-full flex flex-col px-6 sm:px-8 lg:px-12 py-8 space-y-12 pb-20 items-center">
       {/* Hackathon Filter - Minimalist pill style */}
       <div className="w-full max-w-2xl flex flex-col items-center gap-6">
         <div className="flex items-center gap-2 text-zinc-600">

@@ -68,7 +68,7 @@ export default function HackathonList({ onSelectHackathon, onCreateClick }: Hack
   }
 
   return (
-    <div className="space-y-10 pb-20 animate-in fade-in duration-700">
+    <div className="w-full px-6 sm:px-8 lg:px-12 py-8 space-y-10 pb-20 animate-in fade-in duration-700">
 
       {/* Hero Section */}
       <div className="relative overflow-hidden rounded-[2.5rem] bg-[#0a0a0c] border border-zinc-800/50">

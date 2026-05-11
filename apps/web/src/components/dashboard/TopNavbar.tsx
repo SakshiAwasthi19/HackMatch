@@ -168,7 +168,7 @@ export default function TopNavbar({ activeTab, onTabChange, user, onShowMatch }:
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-black/80 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full px-6 sm:px-8 lg:px-12">
         <div className="flex justify-between items-center h-16">
           
           {/* Left: Logo */}
