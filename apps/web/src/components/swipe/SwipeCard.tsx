@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { animated } from '@react-spring/web';
+import { Heart, X } from 'lucide-react';
 import ProfileCard from '../shared/ProfileCard';
-
 import { SwipeDeckUser } from '@/lib/types';
 
 interface SwipeCardProps {
@@ -15,7 +15,6 @@ interface SwipeCardProps {
 }
 
 export default function SwipeCard({ user, style, bind, isTop, onViewProfile }: SwipeCardProps) {
-  // Calculate swipe indicator opacity from spring x value
   const swipeX = style.x;
 
   return (
@@ -28,10 +27,11 @@ export default function SwipeCard({ user, style, bind, isTop, onViewProfile }: S
         height: '100%',
         touchAction: 'none',
         willChange: 'transform',
+        transformOrigin: '50% 100%',
       }}
     >
-      <div className="relative w-full h-full group">
-        {/* The shared Profile Card */}
+      <div className="relative w-full h-full rounded-[2.5rem] overflow-hidden">
+        {/* Profile Content */}
         <ProfileCard
           name={user.name}
           image={user.image}
@@ -45,35 +45,37 @@ export default function SwipeCard({ user, style, bind, isTop, onViewProfile }: S
           onViewProfile={onViewProfile ? () => onViewProfile(user) : undefined}
         />
 
-        {/* Swipe Direction Indicators (Overlayed on top) */}
+        {/* Swipe Overlays */}
         {isTop && (
-          <div className="absolute inset-0 z-50 pointer-events-none overflow-hidden rounded-[2.5rem]">
-            {/* Match Indicator (Right Swipe) */}
+          <>
+            {/* LIKE Overlay */}
             <animated.div
               style={{
                 opacity: swipeX?.to((x: number) => Math.min(Math.max(x / 100, 0), 1)) ?? 0,
-                transform: swipeX?.to((x: number) => `scale(${0.5 + Math.min(Math.max(x / 200, 0), 0.5)}) rotate(-15deg)`),
+                backgroundColor: 'rgba(34, 197, 94, 0.15)',
               }}
-              className="absolute inset-0 bg-emerald-500/20 flex items-center justify-center backdrop-blur-sm"
+              className="absolute inset-0 z-50 pointer-events-none"
             >
-              <div className="px-10 py-4 rounded-3xl border-8 border-emerald-400 text-emerald-400 font-black text-6xl uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(52,211,153,0.3)]">
-                Match
+              <div className="absolute top-8 left-8 -rotate-[15deg] border-[3px] border-[rgb(34,197,94)] rounded-lg px-4 py-1.5 flex items-center gap-2">
+                <span className="text-[rgb(34,197,94)] text-3xl font-[800] uppercase tracking-widest">LIKE</span>
+                <Heart className="w-8 h-8 text-[rgb(34,197,94)] fill-[rgb(34,197,94)]" />
               </div>
             </animated.div>
 
-            {/* Pass Indicator (Left Swipe) */}
+            {/* NOPE Overlay */}
             <animated.div
               style={{
                 opacity: swipeX?.to((x: number) => Math.min(Math.max(-x / 100, 0), 1)) ?? 0,
-                transform: swipeX?.to((x: number) => `scale(${0.5 + Math.min(Math.max(-x / 200, 0), 0.5)}) rotate(15deg)`),
+                backgroundColor: 'rgba(239, 68, 68, 0.15)',
               }}
-              className="absolute inset-0 bg-red-500/20 flex items-center justify-center backdrop-blur-sm"
+              className="absolute inset-0 z-50 pointer-events-none"
             >
-              <div className="px-10 py-4 rounded-3xl border-8 border-red-400 text-red-400 font-black text-6xl uppercase tracking-[0.2em] shadow-[0_0_50px_rgba(248,113,113,0.3)]">
-                Pass
+              <div className="absolute top-8 right-8 rotate-[15deg] border-[3px] border-[rgb(239,68,68)] rounded-lg px-4 py-1.5 flex items-center gap-2">
+                <span className="text-[rgb(239,68,68)] text-3xl font-[800] uppercase tracking-widest">NOPE</span>
+                <X className="w-8 h-8 text-[rgb(239,68,68)] stroke-[3px]" />
               </div>
             </animated.div>
-          </div>
+          </>
         )}
       </div>
     </animated.div>

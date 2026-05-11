@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
-import { useSprings, animated } from '@react-spring/web';
+import React, { useState, useRef, useCallback } from 'react';
+import { useSprings } from '@react-spring/web';
 import { useDrag } from '@use-gesture/react';
 import { X, Heart, Bolt } from 'lucide-react';
 import { SwipeResult, SwipeDeckUser } from '@/lib/types';
@@ -16,25 +16,12 @@ interface SwipeDeckProps {
   onViewProfile?: (user: SwipeDeckUser) => void;
 }
 
-// Spring config for card at rest (stacked)
-const to = (i: number, currentIndex: number) => ({
-  x: 0,
-  y: (i - currentIndex) * -8,
-  scale: 1 - (i - currentIndex) * 0.04,
-  rotate: 0,
-  opacity: i - currentIndex < 3 ? 1 : 0,
-  immediate: false,
-});
-
-// Spring config for card flying off screen
-const flyOut = (dir: number) => ({
-  x: dir * (window.innerWidth + 500),
-  rotate: dir * 45,
-  scale: 1,
-  opacity: 0,
-  immediate: false,
-  config: { friction: 60, tension: 150 },
-});
+// Spring physics configurations
+const physics = {
+  drag: { tension: 500, friction: 30, mass: 1 },
+  exit: { tension: 200, friction: 25, mass: 1 },
+  snap: { tension: 400, friction: 35 },
+};
 
 export default function SwipeDeck({ 
   users, 
@@ -45,75 +32,93 @@ export default function SwipeDeck({
   onViewProfile 
 }: SwipeDeckProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [animating, setAnimating] = useState(false);
   const isAnimating = useRef(false);
+  
+  // Helper to determine position in stack
+  const getStackStyle = useCallback((i: number, curIndex: number) => {
+    const diff = i - curIndex;
+    if (diff < 0) return { x: 0, y: 0, scale: 1, rotate: 0, opacity: 0 }; // Gone
+    if (diff === 0) return { x: 0, y: 0, scale: 1, rotate: 0, opacity: 1 };
+    if (diff === 1) return { x: 0, y: 10, scale: 0.95, rotate: 0, opacity: 1 };
+    if (diff === 2) return { x: 0, y: 20, scale: 0.90, rotate: 0, opacity: 0.7 };
+    return { x: 0, y: 20, scale: 0.90, rotate: 0, opacity: 0 };
+  }, []);
 
   const [springs, api] = useSprings(users.length, (i: number) => ({
-    ...to(i, currentIndex),
+    ...getStackStyle(i, currentIndex),
     from: { x: 0, y: -1000, scale: 1.5, rotate: 0, opacity: 0 },
-  }), [users.length, currentIndex]);
+    config: physics.snap,
+  }), [users.length]);
+
+  // Update stack positions whenever currentIndex changes
+  React.useEffect(() => {
+    api.start(i => ({
+      ...getStackStyle(i, currentIndex),
+      config: physics.snap,
+    }));
+  }, [currentIndex, api, getStackStyle]);
 
   const triggerSwipe = async (dir: number) => {
     if (isAnimating.current || currentIndex >= users.length) return;
     isAnimating.current = true;
-    setAnimating(true);
 
     const user = users[currentIndex];
     const swipeType = dir > 0 ? 'RIGHT' : 'LEFT';
-    const nextIndex = currentIndex + 1;
+    const exitX = dir * (window.innerWidth * 1.5);
+    const exitRotate = dir * 25;
 
-    // Animate card off screen and shift others up immediately
-    api.start((i: number) => {
-      if (i === currentIndex) return flyOut(dir);
-      if (i > currentIndex) return to(i, nextIndex);
-      return {};
+    api.start(i => {
+      if (i !== currentIndex) return;
+      return {
+        x: exitX,
+        rotate: exitRotate,
+        opacity: 0,
+        config: physics.exit,
+        onRest: () => {
+          // Finalize swipe after animation
+          const nextIndex = currentIndex + 1;
+          setCurrentIndex(nextIndex);
+          isAnimating.current = false;
+          
+          void onSwipe(user.id, swipeType).then(result => {
+            if (result.matched) onMatch(result);
+          });
+
+          if (nextIndex >= users.length) {
+            onEmpty();
+          }
+        },
+      };
     });
-
-    // Wait for animation, then process
-    setTimeout(async () => {
-      try {
-        const result = await onSwipe(user.id, swipeType);
-        if (result.matched) {
-          onMatch(result);
-        }
-      } catch (err) {
-        console.error('Swipe error:', err);
-      }
-
-      setCurrentIndex(nextIndex);
-      isAnimating.current = false;
-      setAnimating(false);
-
-      if (nextIndex >= users.length) {
-        onEmpty();
-      }
-    }, 500);
   };
 
   const bind = useDrag(
     ({ active, movement: [mx], direction: [xDir], velocity: [vx] }) => {
-      if (isAnimating.current) return;
+      if (isAnimating.current || currentIndex >= users.length) return;
 
-      const trigger = vx > 0.3 || Math.abs(mx) > 150;
+      const trigger = vx > 0.5 || Math.abs(mx) > 150;
 
       if (!active && trigger) {
         triggerSwipe(xDir > 0 ? 1 : -1);
         return;
       }
 
-      // Update spring while dragging
-      api.start((i: number) => {
-        if (i !== currentIndex) return {};
+      api.start(i => {
+        if (i !== currentIndex) return;
         return {
           x: active ? mx : 0,
-          rotate: active ? mx / 12 : 0,
-          scale: active ? 1.03 : 1,
-          immediate: (name: string) => active && name === 'x',
-          config: { friction: 50, tension: active ? 800 : 500 },
+          rotate: active ? Math.max(Math.min(mx / 20, 20), -20) : 0,
+          scale: active ? 1.05 : 1,
+          config: active ? physics.drag : physics.snap,
+          immediate: false,
         };
       });
     },
-    { filterTaps: true, threshold: 10 }
+    { 
+      filterTaps: true, 
+      threshold: 10,
+      pointer: { touch: true }
+    }
   );
 
   if (users.length === 0) {
@@ -135,7 +140,8 @@ export default function SwipeDeck({
       {/* Card Stack */}
       <div className="relative w-[400px] h-[580px] perspective-1000">
         {springs.map((style, i) => {
-          if (i < currentIndex || i - currentIndex >= 3) return null;
+          // Optimization: only render top 3 cards
+          if (i < currentIndex || i > currentIndex + 2) return null;
           return (
             <SwipeCard
               key={users[i].id}
@@ -155,45 +161,39 @@ export default function SwipeDeck({
               <Heart className="h-10 w-10 text-zinc-600" />
             </div>
             <h3 className="text-2xl font-bold text-white mb-2">All Caught Up!</h3>
-            <p className="text-zinc-500">No more potential teammates in this category for now.</p>
+            <p className="text-zinc-500">No more potential teammates for now.</p>
           </div>
         )}
       </div>
 
-      {/* Action Buttons - Classic Circular Design */}
+      {/* Action Buttons - High performance FABs */}
       {currentIndex < users.length && (
         <div className="flex items-center gap-6">
-          {/* Dislike/Pass */}
+          {/* Dislike/Pass Button */}
           <button
             onClick={() => triggerSwipe(-1)}
-            disabled={animating}
-            className="group h-16 w-16 rounded-full bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 flex items-center justify-center
-                       hover:border-red-500/50 hover:bg-red-500/10 hover:scale-110
-                       active:scale-95 transition-all duration-300 shadow-xl"
+            className="group h-14 w-14 rounded-full bg-white flex items-center justify-center border-2 border-transparent 
+                       hover:border-red-500/50 transition-all duration-200 active:scale-90 shadow-lg"
           >
-            <X className="h-7 w-7 text-zinc-500 group-hover:text-red-400 transition-colors" />
+            <X className="h-7 w-7 text-red-500 group-hover:scale-110 transition-transform" />
           </button>
 
-          {/* Connect (Zap/Bolt) */}
+          {/* Connect/SuperLike Button */}
           <button
             onClick={() => onConnect(users[currentIndex])}
-            disabled={animating}
-            className="group h-12 w-12 rounded-full bg-zinc-900/50 backdrop-blur-xl border border-zinc-800 flex items-center justify-center
-                       hover:border-indigo-500/50 hover:bg-indigo-500/10 hover:scale-110
-                       active:scale-95 transition-all duration-300 shadow-lg"
+            className="group h-12 w-12 rounded-full bg-zinc-900/80 border border-zinc-800 flex items-center justify-center 
+                       hover:border-indigo-500/50 transition-all duration-200 active:scale-90 shadow-lg"
           >
-            <Bolt className="h-5 w-5 text-zinc-500 group-hover:text-indigo-400 transition-colors" />
+            <Bolt className="h-5 w-5 text-indigo-400 group-hover:scale-110 transition-transform" />
           </button>
 
-          {/* Collaborate (Heart) */}
+          {/* Like/Heart Button */}
           <button
             onClick={() => triggerSwipe(1)}
-            disabled={animating}
-            className="group h-20 w-20 rounded-full bg-indigo-600 flex items-center justify-center
-                       hover:bg-indigo-500 hover:scale-110 hover:shadow-[0_0_40px_rgba(79,70,229,0.5)]
-                       active:scale-95 transition-all duration-300 shadow-2xl shadow-indigo-600/30"
+            className="group h-14 w-14 rounded-full bg-white flex items-center justify-center border-2 border-transparent 
+                       hover:border-green-500/50 transition-all duration-200 active:scale-90 shadow-lg"
           >
-            <Heart className="h-10 w-10 text-white fill-white/10 group-hover:fill-white/20 transition-all" />
+            <Heart className="h-7 w-7 text-green-500 fill-green-500/10 group-hover:fill-green-500 group-hover:scale-110 transition-all" />
           </button>
         </div>
       )}
