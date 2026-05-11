@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { Sparkles, MessageCircle, Trophy, ArrowRight, UserPlus, X, Check } from 'lucide-react';
+import { Sparkles, MessageCircle, Trophy, ArrowRight, UserPlus, Check } from 'lucide-react';
 import Image from 'next/image';
 import { apiFetch } from '@/lib/auth-client';
 
@@ -192,7 +192,7 @@ export default function MatchOverlay({
               {isInvite ? (
                 <>
                   <p className="text-zinc-400 mb-1">
-                    You've been invited to join a team for <span className="text-white font-semibold">{hackathonName}</span>
+                    You&apos;ve been invited to join a team for <span className="text-white font-semibold">{hackathonName}</span>
                   </p>
                   
                   {accepted ? (

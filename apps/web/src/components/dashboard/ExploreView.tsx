@@ -6,7 +6,6 @@ import SwipeDeck from '@/components/swipe/SwipeDeck';
 import { apiFetch } from '@/lib/auth-client';
 import { SwipeDeckUser, SwipeResult } from '@/lib/types';
 import ProfileModal from '../shared/ProfileModal';
-import MatchOverlay from '../match/MatchOverlay';
 interface ExploreViewProps {
   onMatch: (data: SwipeResult) => void;
 }
@@ -15,25 +14,30 @@ export default function ExploreView({ onMatch }: ExploreViewProps) {
   const [users, setUsers] = useState<SwipeDeckUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [viewingUser, setViewingUser] = useState<any>(null);
+  const [viewingUser, setViewingUser] = useState<SwipeDeckUser | null>(null);
 
-  const fetchExploreDeck = useCallback(async () => {
+  const fetchExploreDeck = useCallback(async (isInitial = false) => {
     try {
-      setLoading(true);
-      setError(null);
+      if (!isInitial) {
+        setLoading(true);
+        setError(null);
+      }
       const res = await apiFetch('/api/explore/swipe-deck');
       if (!res.ok) throw new Error('Failed to load explore deck');
       const data = await res.json();
       setUsers(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchExploreDeck();
+    const timer = setTimeout(() => {
+      fetchExploreDeck(true);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [fetchExploreDeck]);
 
   const handleSwipe = async (userId: string, type: 'LEFT' | 'RIGHT'): Promise<SwipeResult> => {
@@ -74,7 +78,7 @@ export default function ExploreView({ onMatch }: ExploreViewProps) {
           <div className="text-center p-8 bg-red-500/10 border border-red-500/20 rounded-2xl max-w-md">
             <p className="text-red-500 font-bold mb-4">{error}</p>
             <button 
-              onClick={fetchExploreDeck}
+              onClick={() => fetchExploreDeck()}
               className="px-6 py-2 bg-red-500 text-white rounded-xl font-bold"
             >
               Try Again
@@ -85,10 +89,10 @@ export default function ExploreView({ onMatch }: ExploreViewProps) {
             <div className="h-24 w-24 rounded-full bg-zinc-800 flex items-center justify-center mb-6">
               <Zap className="h-12 w-12 text-zinc-600" />
             </div>
-            <h3 className="text-2xl font-bold text-white mb-2">That's everyone for now!</h3>
+            <h3 className="text-2xl font-bold text-white mb-2">That&apos;s everyone for now!</h3>
             <p className="text-zinc-500 max-w-xs">Check back later for new people.</p>
             <button 
-              onClick={fetchExploreDeck}
+              onClick={() => fetchExploreDeck()}
               className="mt-6 text-indigo-500 font-bold hover:underline"
             >
               Refresh Deck

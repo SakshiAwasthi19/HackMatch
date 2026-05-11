@@ -11,6 +11,12 @@ import { Notification as NotificationType, SwipeResult } from '@/lib/types';
 
 export type TabType = 'hackathons' | 'swipe' | 'explore' | 'matches' | 'teams' | 'messages' | 'profile' | 'admin';
 
+interface NotificationMetadata {
+  hackathonTitle?: string;
+  leaderId?: string;
+  leaderName?: string;
+}
+
 interface TopNavbarProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
@@ -86,15 +92,16 @@ export default function TopNavbar({ activeTab, onTabChange, user, onShowMatch }:
 
   const handleNotificationClick = async (notification: NotificationType) => {
     if (notification.type === 'TEAM_INVITE') {
+      const metadata = notification.metadata as NotificationMetadata | undefined;
       onShowMatch?.({
         matched: false,
         matchType: 'teamInvite',
         relatedId: notification.id,
         teamId: notification.relatedId,
-        hackathonName: (notification.metadata as any)?.hackathonTitle || 'Hackathon',
+        hackathonName: metadata?.hackathonTitle || 'Hackathon',
         matchedUser: {
-          id: (notification.metadata as any)?.leaderId || '',
-          name: (notification.metadata as any)?.leaderName || 'Team Leader',
+          id: metadata?.leaderId || '',
+          name: metadata?.leaderName || 'Team Leader',
           image: notification.actor?.image || null
         }
       });

@@ -28,9 +28,9 @@ export default function TeamManager() {
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
-  const fetchTeams = useCallback(async () => {
+  const fetchTeams = useCallback(async (isInitial = false) => {
     try {
-      setLoading(true);
+      if (!isInitial) setLoading(true);
       // Fetch teams where user is a member, then filter for leaders
       // Or we can add an endpoint for this. For now let's fetch all user teams.
       // Assuming /api/teams/my returns teams the user is in.
@@ -47,7 +47,10 @@ export default function TeamManager() {
   }, []);
 
   useEffect(() => {
-    fetchTeams();
+    const timer = setTimeout(() => {
+      fetchTeams(true);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [fetchTeams]);
 
   const handleUpdateTags = async (teamId: string, tags: string[]) => {
@@ -64,8 +67,8 @@ export default function TeamManager() {
       setTeams(teams.map(t => t.id === teamId ? { ...t, lookingFor: tags } : t));
       setStatus({ type: 'success', message: 'Tags updated successfully!' });
       setTimeout(() => setStatus(null), 3000);
-    } catch (err: any) {
-      setStatus({ type: 'error', message: err.message });
+    } catch (err: unknown) {
+      setStatus({ type: 'error', message: err instanceof Error ? err.message : 'Failed to update tags' });
     } finally {
       setSaving(false);
     }
@@ -166,7 +169,7 @@ export default function TeamManager() {
               
               <div className="flex flex-wrap gap-2">
                 {team.lookingFor.length === 0 && !editingId && (
-                  <p className="text-sm text-zinc-600 italic">No signals set. Other users won't know what you need!</p>
+                  <p className="text-sm text-zinc-600 italic">No signals set. Other users won&apos;t know what you need!</p>
                 )}
                 {team.lookingFor.map((tag) => (
                   <span 
@@ -201,9 +204,10 @@ export default function TeamManager() {
                     />
                     <button 
                       onClick={() => addTag(team.id, tagInput)}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-indigo-600 rounded-xl text-white hover:bg-indigo-500 transition-all"
+                      disabled={saving}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-indigo-600 rounded-xl text-white hover:bg-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      <Plus className="h-4 w-4" />
+                      {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
                     </button>
                   </div>
 
