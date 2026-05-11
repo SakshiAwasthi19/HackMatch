@@ -90,15 +90,6 @@ export default function TeamSidebar({ teamId, teamName, members, resources, onRe
 
   return (
     <div className="w-80 border-l border-white/5 bg-[#0d0d14] flex flex-col h-full overflow-y-auto no-scrollbar pb-10">
-      {/* Team Header Info */}
-      <div className="p-6 border-b border-white/5">
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-          <span className="text-[10px] font-black text-zinc-500 uppercase tracking-widest">
-            {members.length} Members • Online
-          </span>
-        </div>
-      </div>
 
       {/* PROJECT RESOURCES */}
       <div className="p-6 space-y-4">
