@@ -24,7 +24,13 @@ interface NotificationItemProps {
 export default function NotificationItem({ notification, onMarkAsRead }: NotificationItemProps) {
   const router = useRouter();
 
-  let meta: any = null;
+  let meta: {
+    senderName?: string;
+    senderAvatar?: string;
+    hackathonTitle?: string;
+    message?: string;
+  } | null = null;
+
   try {
     if (notification.type === 'CONNECT_INVITE') {
       meta = JSON.parse(notification.content);
@@ -55,7 +61,7 @@ export default function NotificationItem({ notification, onMarkAsRead }: Notific
 
       // 3. Redirect to swipe deck
       router.push(`/dashboard/hackathons/${notification.relatedId}/swipe`);
-    } catch (err) {
+    } catch {
       toast.error("Something went wrong");
     }
   };
@@ -68,7 +74,7 @@ export default function NotificationItem({ notification, onMarkAsRead }: Notific
         <div className="flex gap-3 mb-3">
           <div className="h-10 w-10 rounded-xl overflow-hidden flex-shrink-0 border border-white/10 bg-zinc-800">
             {meta.senderAvatar ? (
-              <Image src={meta.senderAvatar} alt={meta.senderName} width={40} height={40} className="object-cover" />
+              <Image src={meta.senderAvatar} alt={meta.senderName || 'Avatar'} width={40} height={40} className="object-cover" />
             ) : (
               <div className="h-full w-full flex items-center justify-center bg-indigo-600 text-white font-bold text-xs">
                 {meta.senderName?.[0]?.toUpperCase()}

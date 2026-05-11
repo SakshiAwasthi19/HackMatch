@@ -247,7 +247,7 @@ export default function ExploreView({ onMatch, onStartChat }: ExploreViewProps) 
                     ...user,
                     hasInviteSent: sentInviteIds.has(user.id)
                   }}
-                  onConnect={(id) => setConnectingUser(user)}
+                  onConnect={() => setConnectingUser(user)}
                   onCollaborate={(id) => handleAction(id, 'RIGHT', null)}
                   onMessage={async (id) => {
                     try {

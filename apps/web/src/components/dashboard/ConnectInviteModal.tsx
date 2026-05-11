@@ -79,7 +79,7 @@ export default function ConnectInviteModal({ isOpen, onClose, user, onSuccess }:
       onClose();
       setMessage('');
       setSelectedHackathonId('');
-    } catch (err) {
+    } catch {
       toast.error('Failed to send invite. Please try again.');
     } finally {
       setLoading(false);
