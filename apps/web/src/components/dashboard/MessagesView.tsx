@@ -34,7 +34,7 @@ interface Chat {
   updatedAt: string;
 }
 
-export default function MessagesView() {
+export default function MessagesView({ initialUserId }: { initialUserId?: string | null }) {
   const { data: session } = useSession();
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,9 +57,20 @@ export default function MessagesView() {
           const data = await res.json();
           setChats(data);
           
-          // Auto-select first chat if none selected
-          if (data.length > 0 && !selectedChatId) {
-            setSelectedChatId(data[0].id);
+          // Auto-select chat
+          if (data.length > 0) {
+            if (initialUserId) {
+              const targetChat = data.find((c: Chat) => 
+                c.type === 'DM' && c.members.some(m => m.userId === initialUserId)
+              );
+              if (targetChat) {
+                setSelectedChatId(targetChat.id);
+              } else if (!selectedChatId) {
+                setSelectedChatId(data[0].id);
+              }
+            } else if (!selectedChatId) {
+              setSelectedChatId(data[0].id);
+            }
           }
         }
       } catch (error) {
@@ -72,7 +83,7 @@ export default function MessagesView() {
     if (session?.user) {
       fetchChats();
     }
-  }, [session, selectedChatId]);
+  }, [session, selectedChatId, initialUserId]);
 
   if (loading) {
     return (

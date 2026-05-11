@@ -9,6 +9,7 @@ import ExploreCard from './ExploreCard';
 
 interface ExploreViewProps {
   onMatch: (data: SwipeResult) => void;
+  onStartChat: (userId: string) => void;
 }
 
 interface UserWithStatus extends SwipeDeckUser {
@@ -17,7 +18,7 @@ interface UserWithStatus extends SwipeDeckUser {
   receivedRequest?: boolean;
 }
 
-export default function ExploreView({ onMatch }: ExploreViewProps) {
+export default function ExploreView({ onMatch, onStartChat }: ExploreViewProps) {
   const [users, setUsers] = useState<UserWithStatus[]>([]);
   const [skills, setSkills] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
@@ -241,9 +242,7 @@ export default function ExploreView({ onMatch }: ExploreViewProps) {
                   user={user}
                   onConnect={(id) => handleAction(id, 'RIGHT', null)}
                   onCollaborate={(id) => handleAction(id, 'RIGHT', null)}
-                  onMessage={(id) => {
-                    window.location.href = `/dashboard/messages?userId=${id}`;
-                  }}
+                  onMessage={(id) => onStartChat(id)}
                   onViewProfile={(u) => setViewingUser(u)}
                 />
               ))}

@@ -29,6 +29,7 @@ export default function Dashboard() {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [preSelectedMatchHackathonId] = useState<string | null>(null);
   const [matchData, setMatchData] = useState<SwipeResult | null>(null);
+  const [targetChatUserId, setTargetChatUserId] = useState<string | null>(null);
   const [swipeRefreshKey, setSwipeRefreshKey] = useState(0);
   const [isHydrating, setIsHydrating] = useState(true);
 
@@ -164,7 +165,13 @@ export default function Dashboard() {
             )}
 
             {activeTab === 'explore' && (
-              <ExploreView onMatch={(data) => setMatchData(data)} />
+              <ExploreView 
+                onMatch={(data) => setMatchData(data)} 
+                onStartChat={(userId) => {
+                  setTargetChatUserId(userId);
+                  setActiveTab('messages');
+                }}
+              />
             )}
 
             {activeTab === 'matches' && (
@@ -182,7 +189,7 @@ export default function Dashboard() {
             )}
 
             {activeTab === 'messages' && (
-              <MessagesView />
+              <MessagesView initialUserId={targetChatUserId} />
             )}
 
             {activeTab === 'profile' && (
