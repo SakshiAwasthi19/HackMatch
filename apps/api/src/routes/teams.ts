@@ -129,7 +129,7 @@ router.delete('/resources/:resourceId', requiredAuth, async (req: any, res: Resp
     if (!resource) return res.status(404).json({ message: 'Resource not found' });
 
     // Verify user is a member of the team
-    const isMember = resource.team.members.some(m => m.userId === userId);
+    const isMember = resource.team.members.some((m: { userId: string }) => m.userId === userId);
     if (!isMember) {
       return res.status(403).json({ message: 'You do not have permission to delete this resource' });
     }
