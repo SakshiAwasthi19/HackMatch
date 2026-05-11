@@ -60,6 +60,35 @@ router.post('/swipes', requiredAuth, async (req, res) => {
             if (hackathon)
                 hackathonName = hackathon.name;
         }
+        // ─────────────────────────────────────────────────────
+        // LEADER SWIPE ON SOLO USER (Team Invite Flow)
+        // ─────────────────────────────────────────────────────
+        if (hackathonId) {
+            const senderLeaderMembership = await prisma.teamMember.findFirst({
+                where: { userId: currentUserId, team: { hackathonId }, role: 'LEADER' },
+                include: { team: true }
+            });
+            const receiverInTeam = await prisma.teamMember.findFirst({
+                where: { userId: receiverId, team: { hackathonId } }
+            });
+            if (senderLeaderMembership && !receiverInTeam) {
+                console.log(`[Swipe] Leader inviting solo user. Creating TEAM_INVITE notification...`);
+                const currentUser = await prisma.user.findUnique({ where: { id: currentUserId }, select: { name: true } });
+                const inviteNotification = await prisma.notification.create({
+                    data: {
+                        userId: receiverId,
+                        type: 'TEAM_INVITE',
+                        content: `${currentUser?.name || 'A team leader'} wants you to join their team "${senderLeaderMembership.team.name || 'Unnamed Team'}" for ${hackathonName}!`,
+                        relatedId: senderLeaderMembership.teamId,
+                        actorId: currentUserId,
+                    },
+                });
+                await pushNotification(`notifications:${receiverId}`, 'new_notification', inviteNotification);
+                // No match record created yet as per Issue 1
+                return res.json({ matched: false, inviteSent: true });
+            }
+        }
+        // Standard RIGHT swipe notification
         const interestNotification = await prisma.notification.create({
             data: {
                 userId: receiverId,
@@ -70,12 +99,13 @@ router.post('/swipes', requiredAuth, async (req, res) => {
             },
         });
         await pushNotification(`notifications:${receiverId}`, 'new_notification', interestNotification);
-        // Check for reciprocal RIGHT swipe (Any hackathon or global)
+        // Check for reciprocal RIGHT swipe
         const reciprocal = await prisma.swipe.findFirst({
             where: {
                 senderId: receiverId,
                 receiverId: currentUserId,
                 type: 'RIGHT',
+                hackathonId: hackathonId || null // Ensure context matches
             },
         });
         if (!reciprocal) {
@@ -140,8 +170,8 @@ router.post('/swipes', requiredAuth, async (req, res) => {
             const existingMatch = await tx.match.findFirst({
                 where: {
                     OR: [
-                        { user1Id: currentUserId, user2Id: receiverId, hackathonId },
-                        { user1Id: receiverId, user2Id: currentUserId, hackathonId },
+                        { user1Id: currentUserId, user2Id: receiverId, hackathonId: hackathonId || null },
+                        { user1Id: receiverId, user2Id: currentUserId, hackathonId: hackathonId || null },
                     ],
                 },
             });
@@ -156,7 +186,7 @@ router.post('/swipes', requiredAuth, async (req, res) => {
                     data: {
                         user1Id: currentUserId,
                         user2Id: receiverId,
-                        hackathonId,
+                        hackathonId: hackathonId || null,
                         teamId: team?.id || undefined,
                     },
                 });
@@ -188,9 +218,6 @@ router.post('/swipes', requiredAuth, async (req, res) => {
                     actorId: currentUserId,
                 },
             });
-            // These pushNotifications could be executed after tx is fully committed, but doing it here 
-            // inside tx block is okay since realtime push doesn't await db transaction flush. 
-            // Ideally it should be after tx, but for simplicity we'll push them now.
             await pushNotification(`notifications:${currentUserId}`, 'new_notification', matchNotification1);
             await pushNotification(`notifications:${receiverId}`, 'new_notification', matchNotification2);
             return {
@@ -243,10 +270,9 @@ router.get('/matches', requiredAuth, async (req, res) => {
         });
         const formattedMatches = matches.map((m) => {
             const otherUser = m.user1Id === currentUserId ? m.user2 : m.user1;
-            // Find DM chat if no team chat
             return {
                 id: m.id,
-                hackathonName: m.hackathon?.name || 'Hackathon',
+                hackathonName: m.hackathon?.name || 'Explore Connection',
                 matchedUser: otherUser,
                 teamId: m.teamId,
                 createdAt: m.createdAt
@@ -299,7 +325,7 @@ router.get('/matches/:id', requiredAuth, async (req, res) => {
         res.json({
             id: match.id,
             matchedUser: otherUser,
-            hackathonName: match.hackathon?.name || 'Hackathon',
+            hackathonName: match.hackathon?.name || 'Explore Connection',
             chatId,
             teamId: match.teamId
         });
@@ -307,52 +333,6 @@ router.get('/matches/:id', requiredAuth, async (req, res) => {
     catch (error) {
         console.error('Error fetching match details:', error);
         res.status(500).json({ message: 'Error fetching match details' });
-    }
-});
-// GET /api/swipes/deck (Global Deck)
-router.get('/swipes/deck', requiredAuth, async (req, res) => {
-    try {
-        const currentUserId = req.session.user.id;
-        // 1. Get IDs of people the user has already swiped on (Any context)
-        const swipedRecords = await prisma.swipe.findMany({
-            where: { senderId: currentUserId },
-            select: { receiverId: true }
-        });
-        const swipedUserIds = swipedRecords.map((s) => s.receiverId);
-        // 2. Get prioritized admirers
-        const receivedRightSwipes = await prisma.swipe.findMany({
-            where: {
-                receiverId: currentUserId,
-                type: 'RIGHT',
-                senderId: { notIn: [currentUserId, ...swipedUserIds] }
-            },
-            select: { senderId: true }
-        });
-        const potentialMatchIds = receivedRightSwipes.map((s) => s.senderId);
-        const prioritizedUsers = await prisma.user.findMany({
-            where: { id: { in: potentialMatchIds } },
-            select: {
-                id: true, name: true, image: true, bio: true, title: true,
-                college: true, city: true, githubUrl: true, linkedinUrl: true,
-                skills: { include: { skill: true } }
-            }
-        });
-        const otherUsers = await prisma.user.findMany({
-            where: {
-                id: { notIn: [currentUserId, ...swipedUserIds, ...potentialMatchIds] }
-            },
-            select: {
-                id: true, name: true, image: true, bio: true, title: true,
-                college: true, city: true, githubUrl: true, linkedinUrl: true,
-                skills: { include: { skill: true } }
-            },
-            take: 40 - prioritizedUsers.length
-        });
-        res.json([...prioritizedUsers, ...otherUsers]);
-    }
-    catch (error) {
-        console.error('Error fetching global swipe deck:', error);
-        res.status(500).json({ message: 'Error fetching swipe deck' });
     }
 });
 export default router;

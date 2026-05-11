@@ -14,6 +14,7 @@ import MessagesView from '@/components/dashboard/MessagesView';
 import ProfileView from '@/components/dashboard/ProfileView';
 import AdminView from '@/components/dashboard/AdminView';
 import HackathonDetailView from '@/components/dashboard/HackathonDetailView';
+import TeamManager from '@/components/dashboard/TeamManager';
 import { apiFetch } from '@/lib/auth-client';
 import MatchOverlay from '@/components/match/MatchOverlay';
 import { Hackathon, AdminTab, SwipeResult } from '@/lib/types';
@@ -145,6 +146,12 @@ export default function Dashboard() {
               />
             )}
 
+            {activeTab === 'teams' && (
+              <div className="max-w-4xl mx-auto py-8">
+                <TeamManager />
+              </div>
+            )}
+
             {activeTab === 'messages' && (
               <MessagesView />
             )}
@@ -162,10 +169,13 @@ export default function Dashboard() {
       {matchData && (
         <MatchOverlay 
           isOpen={!!matchData}
-          matchedUser={matchData.matchedUser!}
-          chatId={matchData.chatId!}
+          matchedUser={matchData.matchedUser}
+          chatId={matchData.chatId}
+          teamId={matchData.teamId}
           hackathonName={matchData.hackathonName || ''}
           currentUserImage={session.user?.image}
+          matchType={matchData.matchType}
+          relatedId={matchData.relatedId}
           onClose={() => setMatchData(null)} 
         />
       )}

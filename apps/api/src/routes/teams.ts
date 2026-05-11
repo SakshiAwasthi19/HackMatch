@@ -107,4 +107,115 @@ router.put('/:teamId/name', requiredAuth, async (req: any, res: Response) => {
   }
 });
 
+// ─────────────────────────────────────────────────────
+// PUT /api/teams/:teamId/tags — Set lookingFor tags (Leader only)
+// ─────────────────────────────────────────────────────
+router.put('/:teamId/tags', requiredAuth, async (req: any, res: Response) => {
+  try {
+    const { teamId } = req.params;
+    const { tags } = req.body;
+    const userId: string = req.session.user.id;
+
+    if (!Array.isArray(tags)) {
+      return res.status(400).json({ message: 'Tags must be an array of strings' });
+    }
+
+    // Verify user is the LEADER
+    const membership = await prisma.teamMember.findFirst({
+      where: { teamId, userId, role: 'LEADER' },
+    });
+
+    if (!membership) {
+      return res.status(403).json({ message: 'Only the team leader can manage tags' });
+    }
+
+    const updatedTeam = await prisma.team.update({
+      where: { id: teamId },
+      data: { lookingFor: tags },
+    });
+
+    res.json(updatedTeam);
+  } catch (error) {
+    console.error('Error updating team tags:', error);
+    res.status(500).json({ message: 'Error updating team tags' });
+  }
+});
+
+// ─────────────────────────────────────────────────────
+// POST /api/teams/invites/:notificationId/accept — Accept team invite
+// ─────────────────────────────────────────────────────
+router.post('/invites/:notificationId/accept', requiredAuth, async (req: any, res: Response) => {
+  try {
+    const { notificationId } = req.params;
+    const userId: string = req.session.user.id;
+
+    const notification = await prisma.notification.findUnique({
+      where: { id: notificationId },
+    });
+
+    if (!notification || notification.userId !== userId || notification.type !== 'TEAM_INVITE') {
+      return res.status(404).json({ message: 'Invitation not found' });
+    }
+
+    const teamId = notification.relatedId;
+    if (!teamId) return res.status(400).json({ message: 'Invalid invitation: no teamId found' });
+
+    // Verify team exists and get hackathonId
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      include: { chats: { where: { type: 'GROUP' }, take: 1 } }
+    });
+
+    if (!team) return res.status(404).json({ message: 'Team no longer exists' });
+
+    // Verify user not already in a team for this hackathon
+    const existingMembership = await prisma.teamMember.findFirst({
+      where: { userId, team: { hackathonId: team.hackathonId } }
+    });
+
+    if (existingMembership) {
+      return res.status(400).json({ message: 'You are already in a team for this hackathon' });
+    }
+
+    // Atomic acceptance
+    const result = await prisma.$transaction(async (tx: any) => {
+      // 1. Add to Team
+      await tx.teamMember.create({
+        data: { teamId, userId, role: 'MEMBER' }
+      });
+
+      // 2. Add to Chat
+      const chatId = team.chats[0]?.id;
+      if (chatId) {
+        await tx.chatMember.create({
+          data: { chatId, userId }
+        });
+      }
+
+      // 3. Create Match record (confirmed connection)
+      await tx.match.create({
+        data: {
+          user1Id: notification.actorId!, // The leader who invited
+          user2Id: userId,
+          hackathonId: team.hackathonId,
+          teamId: teamId
+        }
+      });
+
+      // 4. Mark notification as read
+      await tx.notification.update({
+        where: { id: notificationId },
+        data: { isRead: true }
+      });
+
+      return { success: true, teamId };
+    });
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error accepting invite:', error);
+    res.status(500).json({ message: 'Error accepting invite' });
+  }
+});
+
 export default router;

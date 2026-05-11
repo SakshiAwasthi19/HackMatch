@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import ProfileModal from '../shared/ProfileModal';
 import { Notification as NotificationType, SwipeResult } from '@/lib/types';
 
-export type TabType = 'hackathons' | 'swipe' | 'explore' | 'matches' | 'messages' | 'profile' | 'admin';
+export type TabType = 'hackathons' | 'swipe' | 'explore' | 'matches' | 'teams' | 'messages' | 'profile' | 'admin';
 
 interface TopNavbarProps {
   activeTab: TabType;
@@ -85,6 +85,20 @@ export default function TopNavbar({ activeTab, onTabChange, user, onShowMatch }:
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const handleNotificationClick = async (notification: NotificationType) => {
+    if (notification.type === 'TEAM_INVITE') {
+      onShowMatch?.({
+        matched: false,
+        matchType: 'teamInvite',
+        relatedId: notification.id,
+        teamId: notification.relatedId,
+        hackathonName: (notification.metadata as any)?.hackathonTitle || 'Hackathon',
+        matchedUser: {
+          id: (notification.metadata as any)?.leaderId || '',
+          name: (notification.metadata as any)?.leaderName || 'Team Leader',
+          image: notification.actor?.image || null
+        }
+      });
+    }
     if (notification.type === 'INTEREST' && notification.actor) {
       onTabChange('swipe');
     }
@@ -137,6 +151,7 @@ export default function TopNavbar({ activeTab, onTabChange, user, onShowMatch }:
     { id: 'swipe', label: 'Swipe', icon: Zap },
     { id: 'explore', label: 'Explore', icon: Compass },
     { id: 'matches', label: 'Matches', icon: Users },
+    { id: 'teams', label: 'My Teams', icon: Users }, // Reusing Users icon or should use something else
     { id: 'messages', label: 'Messages', icon: MessageSquare },
   ];
 

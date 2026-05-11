@@ -49,7 +49,7 @@ export default function SwipeView({ selectedHackathonId: initialHackathonId, onM
       
       const endpoint = activeHackathonId 
         ? `/api/hackathons/${activeHackathonId}/swipe-deck`
-        : `/api/swipes/deck`;
+        : `/api/explore/swipe-deck`;
         
       const res = await apiFetch(endpoint);
       

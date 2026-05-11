@@ -1,19 +1,23 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { Sparkles, MessageCircle, Trophy, ArrowRight } from 'lucide-react';
+import { Sparkles, MessageCircle, Trophy, ArrowRight, UserPlus, X, Check } from 'lucide-react';
 import Image from 'next/image';
+import { apiFetch } from '@/lib/auth-client';
 
 interface MatchOverlayProps {
   isOpen: boolean;
-  matchedUser: { id: string; name: string; image: string | null };
+  matchedUser?: { id: string; name: string; image: string | null };
   teamId?: string | null;
-  chatId: string;
+  chatId?: string | null;
   hackathonName: string;
   currentUserImage?: string | null;
   onClose: () => void;
+  // Invitation specific
+  matchType?: 'match' | 'teamInvite';
+  relatedId?: string; // Notification ID
 }
 
 // Floating particle for celebration effect
@@ -56,15 +60,39 @@ export default function MatchOverlay({
   hackathonName,
   currentUserImage,
   onClose,
+  matchType = 'match',
+  relatedId
 }: MatchOverlayProps) {
   const router = useRouter();
+  const [accepting, setAccepting] = useState(false);
+  const [accepted, setAccepted] = useState(false);
 
-  const matchedInitials = matchedUser.name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+  const handleAcceptInvite = async () => {
+    if (!relatedId) return;
+    setAccepting(true);
+    try {
+      const res = await apiFetch(`/api/teams/invites/${relatedId}/accept`, {
+        method: 'POST'
+      });
+      if (res.ok) {
+        setAccepted(true);
+        setTimeout(() => {
+          onClose();
+          router.push('/dashboard/messages');
+        }, 1500);
+      }
+    } catch (err) {
+      console.error('Failed to accept invite:', err);
+    } finally {
+      setAccepting(false);
+    }
+  };
+
+  const matchedInitials = matchedUser?.name
+    ? matchedUser.name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2)
+    : '??';
+
+  const isInvite = matchType === 'teamInvite';
 
   return (
     <AnimatePresence>
@@ -75,8 +103,8 @@ export default function MatchOverlay({
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-md"
         >
-          {/* Celebration Particles */}
-          {Array.from({ length: 20 }).map((_, i) => (
+          {/* Celebration Particles - Only for matches or successful acceptance */}
+          {(matchType === 'match' || accepted) && Array.from({ length: 20 }).map((_, i) => (
             <Particle
               key={i}
               delay={i * 0.08}
@@ -103,7 +131,7 @@ export default function MatchOverlay({
               transition={{ delay: 0.3, type: 'spring', stiffness: 300 }}
               className="relative inline-flex items-center justify-center h-16 w-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 mb-4"
             >
-              <Sparkles className="h-8 w-8 text-indigo-400" />
+              {isInvite ? <UserPlus className="h-8 w-8 text-indigo-400" /> : <Sparkles className="h-8 w-8 text-indigo-400" />}
             </motion.div>
 
             {/* Heading */}
@@ -113,93 +141,129 @@ export default function MatchOverlay({
               transition={{ delay: 0.4 }}
               className="text-3xl font-black bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2"
             >
-              It&apos;s a Match!
+              {isInvite ? (accepted ? 'Welcome Aboard!' : 'Join the Squad!') : "It's a Match!"}
             </motion.h2>
 
             {/* Avatars side by side */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
-              className="flex items-center justify-center gap-4 my-6"
-            >
-              <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center overflow-hidden border-2 border-emerald-400/30">
-                {currentUserImage ? (
-                  <div className="relative h-full w-full">
-                    <Image src={currentUserImage} alt="You" fill className="object-cover" />
-                  </div>
-                ) : (
-                  <span className="text-lg font-bold text-white">You</span>
-                )}
-              </div>
-
+            {matchedUser && (
               <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.6, type: 'spring' }}
-                className="h-8 w-8 rounded-full bg-indigo-500/20 flex items-center justify-center"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+                className="flex items-center justify-center gap-4 my-6"
               >
-                <span className="text-lg">💜</span>
+                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center overflow-hidden border-2 border-emerald-400/30">
+                  {currentUserImage ? (
+                    <div className="relative h-full w-full">
+                      <Image src={currentUserImage} alt="You" fill className="object-cover" />
+                    </div>
+                  ) : (
+                    <span className="text-lg font-bold text-white">You</span>
+                  )}
+                </div>
+
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.6, type: 'spring' }}
+                  className="h-8 w-8 rounded-full bg-indigo-500/20 flex items-center justify-center"
+                >
+                  <span className="text-lg">{isInvite ? '📩' : '💜'}</span>
+                </motion.div>
+
+                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center overflow-hidden border-2 border-indigo-400/30">
+                  {matchedUser.image ? (
+                    <div className="relative h-full w-full">
+                      <Image src={matchedUser.image} alt={matchedUser.name} fill className="object-cover" />
+                    </div>
+                  ) : (
+                    <span className="text-lg font-bold text-white">{matchedInitials}</span>
+                  )}
+                </div>
               </motion.div>
+            )}
 
-              <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center overflow-hidden border-2 border-indigo-400/30">
-                {matchedUser.image ? (
-                  <div className="relative h-full w-full">
-                    <Image src={matchedUser.image} alt={matchedUser.name} fill className="object-cover" />
-                  </div>
-                ) : (
-                  <span className="text-lg font-bold text-white">{matchedInitials}</span>
-                )}
-              </div>
-            </motion.div>
-
-            {/* Match info */}
+            {/* Match/Invite info */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.7 }}
             >
-              <p className="text-zinc-400 mb-1">
-                You matched with <span className="text-white font-semibold">{matchedUser.name}</span>
-              </p>
-              <p className="text-xs text-zinc-500 mb-6">for {hackathonName}</p>
-
-              {teamId ? (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-center gap-2 text-emerald-400 mb-4">
-                    <Trophy className="h-4 w-4" />
-                    <span className="text-sm font-medium">A new team has been formed!</span>
-                  </div>
-                  <button
-                    onClick={() => router.push(`/dashboard/teams/${teamId}`)}
-                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20"
-                  >
-                    Name Your Team
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
-                </div>
+              {isInvite ? (
+                <>
+                  <p className="text-zinc-400 mb-1">
+                    You've been invited to join a team for <span className="text-white font-semibold">{hackathonName}</span>
+                  </p>
+                  
+                  {accepted ? (
+                    <div className="flex items-center justify-center gap-2 text-emerald-400 my-6">
+                      <Check className="h-5 w-5" />
+                      <span className="text-sm font-bold uppercase tracking-widest">Invitation Accepted</span>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 mt-6">
+                      <button
+                        onClick={handleAcceptInvite}
+                        disabled={accepting}
+                        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-lg shadow-indigo-600/20 active:scale-95"
+                      >
+                        {accepting ? 'Accepting...' : 'Accept Invitation'}
+                        {!accepting && <ArrowRight className="h-5 w-5" />}
+                      </button>
+                      <button
+                        onClick={onClose}
+                        className="w-full text-zinc-500 hover:text-zinc-300 py-2 text-xs font-bold uppercase tracking-widest transition-colors"
+                      >
+                        Maybe Later
+                      </button>
+                    </div>
+                  )}
+                </>
               ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-center gap-2 text-blue-400 mb-4">
-                    <MessageCircle className="h-4 w-4" />
-                    <span className="text-sm font-medium">A DM chat has been created!</span>
-                  </div>
-                  <button
-                    onClick={() => router.push(`/dashboard/chats/${chatId}`)}
-                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
-                  >
-                    Open Chat
-                    <MessageCircle className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
+                <>
+                  <p className="text-zinc-400 mb-1">
+                    You matched with <span className="text-white font-semibold">{matchedUser?.name}</span>
+                  </p>
+                  <p className="text-xs text-zinc-500 mb-6">for {hackathonName}</p>
 
-              <button
-                onClick={onClose}
-                className="w-full mt-3 text-sm text-zinc-500 hover:text-zinc-300 py-2 transition-colors"
-              >
-                Continue Swiping
-              </button>
+                  {teamId ? (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-center gap-2 text-emerald-400 mb-4">
+                        <Trophy className="h-4 w-4" />
+                        <span className="text-sm font-medium">A new team has been formed!</span>
+                      </div>
+                      <button
+                        onClick={() => router.push(`/dashboard/teams/${teamId}`)}
+                        className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20"
+                      >
+                        Name Your Team
+                        <ArrowRight className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-center gap-2 text-blue-400 mb-4">
+                        <MessageCircle className="h-4 w-4" />
+                        <span className="text-sm font-medium">A DM chat has been created!</span>
+                      </div>
+                      <button
+                        onClick={() => router.push(`/dashboard/chats/${chatId}`)}
+                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20"
+                      >
+                        Open Chat
+                        <MessageCircle className="h-4 w-4" />
+                      </button>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={onClose}
+                    className="w-full mt-3 text-sm text-zinc-500 hover:text-zinc-300 py-2 transition-colors"
+                  >
+                    Continue Swiping
+                  </button>
+                </>
+              )}
             </motion.div>
           </motion.div>
         </motion.div>
