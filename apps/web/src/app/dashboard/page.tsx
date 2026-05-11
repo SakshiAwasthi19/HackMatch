@@ -39,6 +39,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     // Handle query params for deep linking
+    if (!searchParams) return;
+    
     const tab = searchParams.get('tab') as TabType | null;
     const chatId = searchParams.get('chatId');
     const userId = searchParams.get('userId');
