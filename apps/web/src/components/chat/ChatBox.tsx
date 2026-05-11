@@ -149,7 +149,7 @@ export function ChatBox({ chatId, currentUser, teamName, memberCount }: ChatBoxP
       <div className="h-24 px-8 border-b border-white/5 flex items-center justify-between bg-[#0a0a0f]/50 backdrop-blur-xl z-20">
         <div className="flex items-center gap-4">
           <div className="relative w-12 h-12">
-            <div className="w-full h-full rounded-2xl bg-indigo-600/20 flex items-center justify-center text-indigo-400 font-black">
+            <div className="w-full h-full rounded-xl bg-indigo-600/20 flex items-center justify-center text-indigo-400 font-black">
               {teamName ? teamName.charAt(0) : "U"}
             </div>
             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-[3px] border-[#0a0a0f]" />
@@ -166,13 +166,13 @@ export function ChatBox({ chatId, currentUser, teamName, memberCount }: ChatBoxP
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button className="p-3 hover:bg-white/5 rounded-2xl text-zinc-500 hover:text-white transition-all">
+          <button className="p-3 hover:bg-white/5 rounded-xl text-zinc-500 hover:text-white transition-all">
             <Video className="w-5 h-5" />
           </button>
-          <button className="p-3 hover:bg-white/5 rounded-2xl text-zinc-500 hover:text-white transition-all">
+          <button className="p-3 hover:bg-white/5 rounded-xl text-zinc-500 hover:text-white transition-all">
             <Phone className="w-5 h-5" />
           </button>
-          <button className="p-3 hover:bg-white/5 rounded-2xl text-zinc-500 hover:text-white transition-all">
+          <button className="p-3 hover:bg-white/5 rounded-xl text-zinc-500 hover:text-white transition-all">
             <MoreVertical className="w-5 h-5" />
           </button>
         </div>
@@ -262,8 +262,8 @@ export function ChatBox({ chatId, currentUser, teamName, memberCount }: ChatBoxP
       </div>
 
       {/* Input Area (Redesigned) */}
-      <div className="p-6 px-8 border-t border-white/5 bg-[#0a0a0f]/80 backdrop-blur-xl">
-        <form onSubmit={sendMessage} className="flex gap-4 items-center bg-[#14141c] border border-white/10 rounded-[2rem] p-1.5 pl-5 focus-within:border-indigo-500/50 transition-all shadow-2xl">
+      <div className="p-6 px-8 border-t border-white/5 bg-[#050508]/80 backdrop-blur-xl">
+        <form onSubmit={sendMessage} className="flex gap-4 items-center bg-[#0a0a0f] border border-white/10 rounded-xl p-1.5 pl-5 focus-within:border-indigo-500/50 transition-all shadow-2xl">
           <button type="button" className="text-zinc-600 hover:text-zinc-400 p-1">
             <PlusCircle className="w-5 h-5" />
           </button>

@@ -156,13 +156,13 @@ export default function MessagesView({ initialUserId }: { initialUserId?: string
   }
 
   return (
-    <div className="flex h-[calc(100vh-10rem)] bg-[#050508] rounded-[2.5rem] border border-white/5 overflow-hidden animate-in fade-in duration-700 shadow-2xl">
+    <div className="flex h-[calc(100vh-64px)] bg-[#050508] overflow-hidden animate-in fade-in duration-700">
       {/* Sidebar - Conversation List (Redesigned) */}
-      <div className="w-80 border-r border-white/10 flex flex-col bg-[#0a0a0f]">
+      <div className="w-80 border-r border-white/5 flex flex-col bg-[#0a0a0f]">
         <div className="p-8 pb-4">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-black text-white tracking-tighter">Messages</h2>
-            <button className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-zinc-400 hover:text-white transition-all">
+            <button className="p-2.5 bg-white/5 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-white transition-all">
               <Edit3 className="w-5 h-5" />
             </button>
           </div>
@@ -190,12 +190,12 @@ export default function MessagesView({ initialUserId }: { initialUserId?: string
             <input 
               type="text" 
               placeholder="Search conversations..." 
-              className="w-full bg-zinc-900/50 border border-white/5 rounded-2xl py-2.5 pl-10 pr-4 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-indigo-500/50 transition-all"
+              className="w-full bg-zinc-900/50 border border-white/5 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white placeholder-zinc-600 focus:outline-none focus:border-indigo-500/50 transition-all"
             />
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto no-scrollbar px-4 space-y-2">
+        <div className="flex-1 overflow-y-auto no-scrollbar space-y-0">
           {filteredChats.map(chat => {
             let chatName = "Chat";
             let subText = "";
@@ -226,8 +226,8 @@ export default function MessagesView({ initialUserId }: { initialUserId?: string
               <button
                 key={chat.id}
                 onClick={() => setSelectedChatId(chat.id)}
-                className={`w-full text-left p-4 rounded-3xl flex items-center gap-4 transition-all group relative ${
-                  isSelected ? 'bg-indigo-600/10 border border-indigo-500/20 shadow-xl' : 'hover:bg-white/5 border border-transparent'
+                className={`w-full text-left p-4 flex items-center gap-4 transition-all group relative border-b border-white/5 ${
+                  isSelected ? 'bg-indigo-600/5' : 'hover:bg-white/5'
                 }`}
               >
                 {isSelected && (
@@ -236,9 +236,9 @@ export default function MessagesView({ initialUserId }: { initialUserId?: string
                 
                 <div className="relative w-12 h-12 flex-shrink-0">
                   {image ? (
-                    <Image src={image} alt={chatName} fill className="rounded-2xl object-cover" />
+                    <Image src={image} alt={chatName} fill className="rounded-xl object-cover" />
                   ) : (
-                    <div className={`w-full h-full rounded-2xl flex items-center justify-center text-lg font-black ${
+                    <div className={`w-full h-full rounded-xl flex items-center justify-center text-lg font-black ${
                       chat.type === 'GROUP' ? 'bg-indigo-500/20 text-indigo-400' : 'bg-zinc-800 text-zinc-500'
                     }`}>
                       {chatName.charAt(0)}

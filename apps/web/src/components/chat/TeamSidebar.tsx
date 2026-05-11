@@ -110,7 +110,7 @@ export default function TeamSidebar({ teamId, teamName, members, resources, onRe
   };
 
   return (
-    <div className="w-80 border-l border-white/10 bg-[#0d0d14] flex flex-col h-full overflow-y-auto no-scrollbar pb-10">
+    <div className="w-80 border-l border-white/5 bg-[#0d0d14] flex flex-col h-full overflow-y-auto no-scrollbar pb-10">
       {/* Team Header Info */}
       <div className="p-6 border-b border-white/5">
         {isEditingName && isLeader ? (
@@ -155,7 +155,7 @@ export default function TeamSidebar({ teamId, teamName, members, resources, onRe
 
         <div className="space-y-3">
           {resources.map((resource) => (
-            <div key={resource.id} className="group relative bg-zinc-900/50 border border-white/5 rounded-xl p-3 flex items-center gap-3 hover:bg-zinc-900 transition-all">
+            <div key={resource.id} className="group relative bg-zinc-900/50 border border-white/5 rounded-lg p-3 flex items-center gap-3 hover:bg-zinc-900 transition-all">
               <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
                 {getResourceIcon(resource.type, resource.url)}
               </div>
@@ -183,7 +183,7 @@ export default function TeamSidebar({ teamId, teamName, members, resources, onRe
           ))}
 
           {isAddingResource && (
-            <form onSubmit={handleAddResource} className="bg-zinc-900 border border-indigo-500/30 rounded-xl p-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
+            <form onSubmit={handleAddResource} className="bg-zinc-900 border border-indigo-500/30 rounded-lg p-3 space-y-3 animate-in fade-in slide-in-from-top-2 duration-200">
               <input
                 type="text"
                 placeholder="Resource Title (e.g. GitHub Repo)"
@@ -222,7 +222,7 @@ export default function TeamSidebar({ teamId, teamName, members, resources, onRe
           {!isAddingResource && resources.length === 0 && (
             <button 
               onClick={() => setIsAddingResource(true)}
-              className="w-full py-4 border border-dashed border-white/10 rounded-xl text-zinc-500 hover:text-zinc-300 hover:border-white/20 transition-all flex flex-col items-center gap-2 group"
+              className="w-full py-4 border border-dashed border-white/10 rounded-lg text-zinc-500 hover:text-zinc-300 hover:border-white/20 transition-all flex flex-col items-center gap-2 group"
             >
               <Plus className="w-4 h-4 group-hover:scale-110 transition-transform" />
               <span className="text-[10px] font-bold uppercase tracking-widest">Add Link</span>
@@ -237,7 +237,7 @@ export default function TeamSidebar({ teamId, teamName, members, resources, onRe
         <div className="space-y-4">
           {members.map((member) => (
             <div key={member.userId} className="flex items-center gap-3">
-              <div className="relative w-9 h-9 rounded-xl overflow-hidden bg-zinc-900 border border-white/5">
+              <div className="relative w-9 h-9 rounded-lg overflow-hidden bg-zinc-900 border border-white/5">
                 {member.user.image ? (
                   <Image src={member.user.image} alt={member.user.name} fill className="object-cover" />
                 ) : (
