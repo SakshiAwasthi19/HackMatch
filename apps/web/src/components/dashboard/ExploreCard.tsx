@@ -11,6 +11,7 @@ interface ExploreCardProps {
     receivedRequest?: boolean;
     isMatched?: boolean;
     hasSentRequest?: boolean;
+    hasInviteSent?: boolean;
   };
   onConnect: (userId: string) => void;
   onCollaborate: (userId: string) => void;
@@ -34,7 +35,7 @@ export default function ExploreCard({
 
   const isConnected = user.isMatched;
   const isPending = user.hasSentRequest && !user.isMatched;
-  const hasInviteSent = (user as any).hasInviteSent; // This will be passed from ExploreView
+  const hasInviteSent = user.hasInviteSent; 
 
   return (
     <motion.div
