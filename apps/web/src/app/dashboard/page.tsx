@@ -30,20 +30,43 @@ export default function Dashboard() {
   const [preSelectedMatchHackathonId] = useState<string | null>(null);
   const [matchData, setMatchData] = useState<SwipeResult | null>(null);
   const [swipeRefreshKey, setSwipeRefreshKey] = useState(0);
+  const [isHydrating, setIsHydrating] = useState(true);
 
   useEffect(() => {
-    if (!isPending && !session) {
-      router.push('/login');
-    }
-  }, [session, isPending, router]);
+    // Give mobile browsers extra time to hydrate session/cookies
+    const timer = setTimeout(() => {
+      setIsHydrating(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
-  if (isPending || !session) {
+  useEffect(() => {
+    if (!isPending && !isHydrating && !session) {
+      // Final check: if no session but we have a bearer token, 
+      // we might still be authenticated for API calls.
+      // But for the UI, we usually need the session.
+      const hasToken = typeof window !== "undefined" && !!localStorage.getItem('bearer_token');
+      
+      if (!hasToken) {
+        router.push('/login');
+      } else {
+        // If we have a token but no session, the cookie might be blocked.
+        // We'll allow them to stay for now as apiFetch will use the token.
+        console.warn('No session found, but bearer token exists. Mobile cookie issue?');
+      }
+    }
+  }, [session, isPending, isHydrating, router]);
+
+  if (isPending || isHydrating || (!session && typeof window !== "undefined" && !localStorage.getItem('bearer_token'))) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent"></div>
       </div>
     );
   }
+
+  // Fallback user object if session is missing but token exists
+  const displayUser = session?.user || { id: 'temp', name: 'User', role: 'USER' };
 
   // Handle switching from Hackathons list to Detail view
   const handleSelectHackathon = async (hackathonId: string) => {
@@ -86,7 +109,7 @@ export default function Dashboard() {
       <TopNavbar 
         activeTab={activeTab} 
         onTabChange={handleTabChange} 
-        user={session.user} 
+        user={displayUser as any} 
         onShowMatch={(data) => setMatchData(data)}
       />
       
@@ -160,7 +183,7 @@ export default function Dashboard() {
               <ProfileView />
             )}
 
-            {activeTab === 'admin' && (session.user as { role?: string }).role === 'ADMIN' && (
+            {activeTab === 'admin' && (displayUser as { role?: string }).role === 'ADMIN' && (
               <AdminView initialTab={adminTab} />
             )}
           </>
@@ -173,7 +196,7 @@ export default function Dashboard() {
           chatId={matchData.chatId}
           teamId={matchData.teamId}
           hackathonName={matchData.hackathonName || ''}
-          currentUserImage={session.user?.image}
+          currentUserImage={displayUser?.image}
           matchType={matchData.matchType}
           relatedId={matchData.relatedId}
           onClose={() => setMatchData(null)} 

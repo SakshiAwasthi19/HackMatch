@@ -23,9 +23,9 @@ export const auth = betterAuth({
             enabled: false,
         },
         defaultCookieAttributes: {
-            secure: isProduction,
+            secure: true, // Always true for cross-origin "none"
             httpOnly: true,
-            sameSite: isProduction ? "none" : "lax", // "none" required for cross-origin cookies
+            sameSite: "none", // Required for cross-origin cookies on mobile
             path: "/",
         },
     },
