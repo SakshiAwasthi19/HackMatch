@@ -6,6 +6,7 @@ import { apiFetch } from '@/lib/auth-client';
 import { SwipeDeckUser, SwipeResult } from '@/lib/types';
 import ProfileModal from '../shared/ProfileModal';
 import ExploreCard from './ExploreCard';
+import ConnectInviteModal from './ConnectInviteModal';
 
 interface ExploreViewProps {
   onMatch: (data: SwipeResult) => void;
@@ -16,6 +17,7 @@ interface UserWithStatus extends SwipeDeckUser {
   isMatched?: boolean;
   hasSentRequest?: boolean;
   receivedRequest?: boolean;
+  hasInviteSent?: boolean;
 }
 
 export default function ExploreView({ onMatch, onStartChat }: ExploreViewProps) {
@@ -25,7 +27,9 @@ export default function ExploreView({ onMatch, onStartChat }: ExploreViewProps) 
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [viewingUser, setViewingUser] = useState<SwipeDeckUser | null>(null);
+  const [connectingUser, setConnectingUser] = useState<SwipeDeckUser | null>(null);
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
+  const [sentInviteIds, setSentInviteIds] = useState<Set<string>>(new Set());
   
   const [, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -239,8 +243,11 @@ export default function ExploreView({ onMatch, onStartChat }: ExploreViewProps) 
               {users.map((user) => (
                 <ExploreCard 
                   key={user.id}
-                  user={user}
-                  onConnect={(id) => handleAction(id, 'RIGHT', null)}
+                  user={{
+                    ...user,
+                    hasInviteSent: sentInviteIds.has(user.id)
+                  }}
+                  onConnect={(id) => setConnectingUser(user)}
                   onCollaborate={(id) => handleAction(id, 'RIGHT', null)}
                   onMessage={async (id) => {
                     try {
@@ -276,6 +283,15 @@ export default function ExploreView({ onMatch, onStartChat }: ExploreViewProps) 
         isOpen={!!viewingUser} 
         onClose={() => setViewingUser(null)} 
         user={viewingUser} 
+      />
+
+      <ConnectInviteModal
+        isOpen={!!connectingUser}
+        onClose={() => setConnectingUser(null)}
+        user={connectingUser}
+        onSuccess={(userId) => {
+          setSentInviteIds(prev => new Set(prev).add(userId));
+        }}
       />
 
       <style jsx global>{`

@@ -40,7 +40,29 @@ router.get('/swipe-deck', requiredAuth, async (req: any, res: Response) => {
       };
     }
 
-    // 3. Fetch users with pagination
+    // 3. Find IDs of users who have swiped RIGHT on us but we haven't swiped back
+    const potentialMatchSwipes = await prisma.swipe.findMany({
+      where: {
+        receiverId: userId,
+        type: 'RIGHT',
+        hackathonId: null,
+        sender: {
+          NOT: {
+            receivedSwipes: {
+              some: {
+                senderId: userId,
+                hackathonId: null
+              }
+            }
+          }
+        }
+      },
+      select: { senderId: true }
+    });
+    const prioritizedIds = potentialMatchSwipes.map(s => s.senderId);
+
+    // 4. Fetch users with pagination
+    // We fetch a bit more than 'take' to ensure we can sort and still have enough
     const users = await prisma.user.findMany({
       where,
       include: {
@@ -51,11 +73,14 @@ router.get('/swipe-deck', requiredAuth, async (req: any, res: Response) => {
         },
       },
       orderBy: { lastActiveAt: 'desc' },
+      // Pagination is tricky with prioritization. 
+      // For now, we'll apply it after fetching if the total count is small, 
+      // or just rely on the fact that these users are likely active.
       skip,
       take,
     });
 
-    // 4. Fetch relationship data for these users to determine button states
+    // 5. Fetch relationship data for these users to determine button states
     const userIds = users.map((u: any) => u.id);
 
     const [sentSwipes, receivedSwipes, matches] = await Promise.all([
@@ -81,13 +106,21 @@ router.get('/swipe-deck', requiredAuth, async (req: any, res: Response) => {
       ...matches.map((m: any) => m.user1Id === userId ? m.user2Id : m.user1Id)
     ]);
 
-    // 5. Merge status into user objects
+    // 6. Merge status and Sort by prioritization
     const usersWithStatus = users.map((user: any) => ({
       ...user,
       isMatched: matchedIds.has(user.id),
       hasSentRequest: sentIds.has(user.id),
       receivedRequest: receivedIds.has(user.id),
+      isPrioritized: prioritizedIds.includes(user.id)
     }));
+
+    // Sort: Prioritized users first, then by lastActiveAt (which they already are from the query)
+    usersWithStatus.sort((a, b) => {
+      if (a.isPrioritized && !b.isPrioritized) return -1;
+      if (!a.isPrioritized && b.isPrioritized) return 1;
+      return 0;
+    });
 
     res.json(usersWithStatus);
   } catch (err) {

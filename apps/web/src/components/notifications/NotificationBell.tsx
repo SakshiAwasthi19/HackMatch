@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { apiFetch, useSession } from "@/lib/auth-client";
+import NotificationItem from "./NotificationItem";
 
 interface Notification {
   id: string;
@@ -108,25 +109,11 @@ export function NotificationBell() {
                 </div>
               ) : (
                 notifications.map((notif) => (
-                  <div 
-                    key={notif.id} 
-                    className={`p-4 border-b border-white/5 flex gap-3 hover:bg-white/5 transition-colors ${!notif.isRead ? 'bg-rose-500/5' : ''}`}
-                    onClick={() => {
-                      if (!notif.isRead) markAsRead(notif.id);
-                    }}
-                  >
-                    <div className="flex-1 min-w-0 cursor-default">
-                      <p className={`text-sm ${!notif.isRead ? 'text-white font-medium' : 'text-zinc-300'}`}>
-                        {notif.content}
-                      </p>
-                      <p className="text-xs text-zinc-500 mt-1">
-                        {new Date(notif.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    {!notif.isRead && (
-                      <div className="w-2 h-2 rounded-full bg-rose-500 flex-shrink-0 mt-1.5"></div>
-                    )}
-                  </div>
+                  <NotificationItem 
+                    key={notif.id}
+                    notification={notif}
+                    onMarkAsRead={markAsRead}
+                  />
                 ))
               )}
             </div>

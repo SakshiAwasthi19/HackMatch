@@ -55,6 +55,37 @@ router.get('/', async (req: Request, res: Response) => {
   }
 });
 
+// GET /api/hackathons/my-active
+// Returns hackathons the user is interested in or registered for, and are still active
+router.get('/my-active', requiredAuth, async (req: any, res: Response) => {
+  try {
+    const userId = req.session.user.id;
+    const now = new Date();
+
+    const hackathons = await prisma.hackathon.findMany({
+      where: {
+        endDate: { gte: now },
+        OR: [
+          { interests: { some: { userId } } },
+          { registrations: { some: { userId } } }
+        ]
+      },
+      select: {
+        id: true,
+        name: true,
+        startDate: true,
+        endDate: true
+      },
+      orderBy: { startDate: 'asc' }
+    });
+
+    res.json(hackathons);
+  } catch (error) {
+    console.error('Error fetching my active hackathons:', error);
+    res.status(500).json({ message: 'Error fetching my active hackathons' });
+  }
+});
+
 // Get Single Hackathon
 router.get('/:id', async (req: Request, res: Response) => {
   try {

@@ -25,8 +25,6 @@ export default function ExploreCard({
   onMessage,
   onViewProfile
 }: ExploreCardProps) {
-  const [isPending, setIsPending] = React.useState(false);
-  
   const initials = user.name
     .split(' ')
     .map((n) => n[0])
@@ -34,18 +32,9 @@ export default function ExploreCard({
     .toUpperCase()
     .slice(0, 2);
 
-  const isCollaborate = user.receivedRequest && !user.isMatched && !user.hasSentRequest;
   const isConnected = user.isMatched;
-  const isRequested = user.hasSentRequest && !user.isMatched;
-
-  const handleConnect = async () => {
-    setIsPending(true);
-    try {
-      await onConnect(user.id);
-    } finally {
-      setIsPending(false);
-    }
-  };
+  const isPending = user.hasSentRequest && !user.isMatched;
+  const hasInviteSent = (user as any).hasInviteSent; // This will be passed from ExploreView
 
   return (
     <motion.div
@@ -92,6 +81,12 @@ export default function ExploreCard({
               <span className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Connected</span>
             </div>
           )}
+          
+          {user.receivedRequest && !isConnected && (
+            <div className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/20 rounded-full flex items-center gap-1.5">
+              <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Likes You</span>
+            </div>
+          )}
         </div>
 
         <p className="text-sm text-zinc-400 leading-relaxed mb-6 line-clamp-2 h-10 font-medium">
@@ -107,54 +102,50 @@ export default function ExploreCard({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-3">
           {isConnected ? (
             <button
               onClick={() => onMessage(user.id)}
-              className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-black rounded-2xl transition-all border border-zinc-700 flex items-center justify-center gap-2"
+              className="w-full py-4 bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-black rounded-2xl transition-all border border-zinc-700 flex items-center justify-center gap-2"
             >
               <MessageSquare className="h-4 w-4" />
               Send Message
             </button>
-          ) : isRequested ? (
-            <button
-              disabled
-              className="flex-1 py-3 bg-zinc-800/50 text-zinc-500 text-xs font-black rounded-2xl border border-zinc-800 cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              Requested
-            </button>
-          ) : isPending ? (
-            <button
-              disabled
-              className="flex-1 py-3 bg-indigo-600/50 text-white text-xs font-black rounded-2xl border border-indigo-500/50 cursor-wait flex items-center justify-center gap-2"
-            >
-              <div className="h-3 w-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Pending
-            </button>
-          ) : isCollaborate ? (
-            <button
-              onClick={() => onCollaborate(user.id)}
-              className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:scale-[1.02] active:scale-95 text-white text-xs font-black rounded-2xl transition-all shadow-xl shadow-indigo-600/20 flex items-center justify-center gap-2"
-            >
-              <Zap className="h-4 w-4" />
-              Collaborate
-            </button>
           ) : (
-            <button
-              onClick={handleConnect}
-              className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 hover:scale-[1.02] active:scale-95 text-white text-xs font-black rounded-2xl transition-all shadow-xl shadow-indigo-600/20 flex items-center justify-center gap-2"
-            >
-              Connect
-            </button>
-          )}
-          
-          {!isConnected && (
-            <button
-              onClick={() => alert("Please Connect or Collaborate with this user first to start a chat!")}
-              className="p-3 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 rounded-2xl transition-all"
-            >
-              <MessageSquare className="h-4 w-4" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => onCollaborate(user.id)}
+                disabled={isPending}
+                className={`flex-1 py-3 px-4 rounded-2xl text-[10px] font-black uppercase tracking-wider transition-all border flex items-center justify-center gap-2 ${
+                  isPending 
+                  ? 'bg-zinc-800/50 text-zinc-500 border-zinc-800' 
+                  : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:text-white hover:border-zinc-600 active:scale-95'
+                }`}
+              >
+                <Users className="h-3.5 w-3.5" />
+                {isPending ? 'Pending' : 'Collaborate'}
+              </button>
+
+              <button
+                onClick={() => onConnect(user.id)}
+                disabled={hasInviteSent}
+                className={`flex-1 py-3 px-4 rounded-2xl text-[10px] font-black uppercase tracking-wider transition-all border flex items-center justify-center gap-2 ${
+                  hasInviteSent 
+                  ? 'bg-indigo-900/20 text-indigo-400/50 border-indigo-900/30' 
+                  : 'bg-indigo-600 text-white border-indigo-500 hover:bg-indigo-500 shadow-lg shadow-indigo-500/20 active:scale-95'
+                }`}
+              >
+                <Rocket className="h-3.5 w-3.5" />
+                {hasInviteSent ? 'Invite Sent' : 'Connect'}
+              </button>
+
+              <button
+                onClick={() => isConnected ? onMessage(user.id) : alert("Please Connect or Collaborate with this user first to start a chat!")}
+                className="p-3 bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700 rounded-2xl transition-all"
+              >
+                <MessageSquare className="h-4 w-4" />
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -162,18 +153,18 @@ export default function ExploreCard({
   );
 }
 
-function Zap({ className }: { className?: string }) {
+function Users({ className }: { className?: string }) {
   return (
-    <svg 
-      className={className}
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="3" 
-      strokeLinecap="round" 
-      strokeLinejoin="round"
-    >
-      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+}
+
+function Rocket({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.71-2.13.71-2.13l-4.42-3.58s-1.29 0-2.13.71z" /><path d="M15 9l-9 9" /><path d="M16 4l-4 4" /><path d="M2 22l5.5-5.5" /><path d="M9 15l1-1" /><path d="M18.5 2.5c.34-.34.8-.5 1.5-.5s1.16.16 1.5.5c.34.34.5.8.5 1.5s-.16 1.16-.5 1.5c-.34.34-.8.5-1.5.5s-1.16-.16-1.5-.5c-.34-.34-.5-.8-.5-1.5s.16-1.16.5-1.5z" />
     </svg>
   );
 }

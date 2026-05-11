@@ -37,6 +37,7 @@ import teamRouter from "./routes/teams.js";
 import notificationsRouter from "./routes/notifications.js";
 import chatRouter from "./routes/chat.js";
 import exploreRouter from "./routes/explore.js";
+import connectInvitesRouter from "./routes/connect-invites.js";
 
 app.all("/api/auth/*", toNodeHandler(auth));
 app.use(lastActiveMiddleware);
@@ -48,6 +49,7 @@ app.use("/api/teams", teamRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/chat", chatRouter);
 app.use("/api/explore", exploreRouter);
+app.use("/api/connect-invites", connectInvitesRouter);
 
 // Custom Request Extension
 declare global {
