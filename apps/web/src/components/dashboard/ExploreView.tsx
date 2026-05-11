@@ -57,12 +57,16 @@ export default function ExploreView({ onMatch }: ExploreViewProps) {
     if (!res.ok) throw new Error('Failed to record action');
     const result = await res.json();
     
-    // Remove user from the list after action
-    setUsers(prev => prev.filter(u => u.id !== userId));
-    
     if (result.matched) {
       onMatch(result);
     }
+    
+    // Remove user from the list after a brief delay if it's a match
+    // to allow the match overlay to transition smoothly.
+    const delay = result.matched ? 500 : 0;
+    setTimeout(() => {
+      setUsers(prev => prev.filter(u => u.id !== userId));
+    }, delay);
     
     return result;
   };
