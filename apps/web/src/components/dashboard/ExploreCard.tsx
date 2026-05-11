@@ -94,9 +94,9 @@ export default function ExploreCard({
         {/* Skills */}
         <div className="flex flex-wrap gap-1.5 mb-6">
           {user.skills && user.skills.length > 0 ? (
-            user.skills.slice(0, 3).map((s: any) => (
-              <span key={s.skillId} className="px-2 py-0.5 bg-zinc-800/50 text-[10px] text-zinc-400 border border-zinc-700/50 rounded-md font-mono uppercase tracking-tighter">
-                {s.skill.name}
+            (user.skills as { skill: { id: string; name: string } }[]).slice(0, 3).map((s, idx) => (
+              <span key={s.skill?.id || idx} className="px-2 py-0.5 bg-zinc-800/50 text-[10px] text-zinc-400 border border-zinc-700/50 rounded-md font-mono uppercase tracking-tighter">
+                {s.skill?.name || (typeof s === 'string' ? s : 'Skill')}
               </span>
             ))
           ) : (

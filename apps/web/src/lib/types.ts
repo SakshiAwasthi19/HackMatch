@@ -103,5 +103,6 @@ export interface SwipeDeckUser {
   city: string | null;
   linkedinUrl: string | null;
   githubUrl: string | null;
+  role?: string | null;
   skills: { skill: { id: string; name: string } }[] | string[];
 }

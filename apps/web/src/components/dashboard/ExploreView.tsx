@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Compass, Zap, Filter, Search, ChevronDown } from 'lucide-react';
+import { Compass, Zap, Filter, ChevronDown } from 'lucide-react';
 import { apiFetch } from '@/lib/auth-client';
 import { SwipeDeckUser, SwipeResult } from '@/lib/types';
 import ProfileModal from '../shared/ProfileModal';
@@ -38,7 +38,10 @@ export default function ExploreView({ onMatch }: ExploreViewProps) {
   }, []);
 
   useEffect(() => {
-    fetchExploreDeck(true);
+    const timer = setTimeout(() => {
+      fetchExploreDeck(true);
+    }, 0);
+    return () => clearTimeout(timer);
   }, [fetchExploreDeck]);
 
   const handleAction = async (userId: string, type: 'LEFT' | 'RIGHT', hackathonId: string | null = null): Promise<SwipeResult> => {
