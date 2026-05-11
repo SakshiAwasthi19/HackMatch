@@ -68,4 +68,16 @@ router.post('/:id/read', requiredAuth, async (req: any, res: Response) => {
   }
 });
 
+router.delete('/', requiredAuth, async (req: any, res: Response) => {
+  try {
+    const userId = req.session.user.id;
+    await prisma.notification.deleteMany({
+      where: { userId }
+    });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ message: 'Error clearing notifications' });
+  }
+});
+
 export default router;

@@ -134,6 +134,17 @@ export default function TopNavbar({ activeTab, onTabChange, user, onShowMatch }:
     }
   };
 
+  const handleClearAll = async () => {
+    try {
+      const res = await apiFetch('/api/notifications', { method: 'DELETE' });
+      if (res.ok) {
+        setNotifications([]);
+      }
+    } catch (err) {
+      console.error('Error clearing notifications:', err);
+    }
+  };
+
   const handleLogout = async () => {
     await authClient.signOut();
     router.push('/login');
@@ -230,11 +241,21 @@ export default function TopNavbar({ activeTab, onTabChange, user, onShowMatch }:
               {showNotifications && (
                 <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
                   <div className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
-                    <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Notifications</span>
-                    {unreadCount > 0 && (
-                      <span className="text-[10px] px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full font-bold">
-                        {unreadCount} NEW
-                      </span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Notifications</span>
+                      {unreadCount > 0 && (
+                        <span className="text-[10px] px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 rounded-full font-bold">
+                          {unreadCount} NEW
+                        </span>
+                      )}
+                    </div>
+                    {notifications.length > 0 && (
+                      <button 
+                        onClick={handleClearAll}
+                        className="text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-indigo-500 transition-colors"
+                      >
+                        Clear All
+                      </button>
                     )}
                   </div>
                   <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
