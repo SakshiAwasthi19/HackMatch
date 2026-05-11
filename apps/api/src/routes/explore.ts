@@ -67,7 +67,26 @@ router.get('/swipe-deck', requiredAuth, async (req: any, res: Response) => {
       });
     }
 
-    res.json(users);
+    // 3. Get incoming swipes from these users to identify "Collaborate" opportunities
+    const incomingSwipes = await prisma.swipe.findMany({
+      where: {
+        receiverId: userId,
+        senderId: { in: users.map(u => u.id) },
+        type: 'RIGHT',
+      },
+      select: {
+        senderId: true,
+      }
+    });
+
+    const incomingSenderIds = new Set(incomingSwipes.map(s => s.senderId));
+
+    const usersWithStatus = users.map(user => ({
+      ...user,
+      receivedRequest: incomingSenderIds.has(user.id),
+    }));
+
+    res.json(usersWithStatus);
   } catch (err) {
     console.error('Error fetching explore deck:', err);
     res.status(500).json({ message: 'Error fetching explore deck' });
