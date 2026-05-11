@@ -1,8 +1,7 @@
-# Agent and GSD metadata
+# Agent metadata
 .agent/
 .agents/
 .gemini/
-.gsd/
 adapters/
 assets/
 docs/

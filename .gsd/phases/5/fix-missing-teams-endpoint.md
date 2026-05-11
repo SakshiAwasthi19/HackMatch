@@ -12,7 +12,7 @@ The `TeamManager.tsx` component attempts to fetch user teams via `GET /api/profi
 
 ## Tasks
 
-<task type="auto">
+<task type="auto" status="done">
   <name>Implement /api/profile/teams</name>
   <files>apps/api/src/routes/profile.ts</files>
   <action>Add a GET route to profile.ts that returns all teams the user is a member of, including hackathon names and member roles.</action>

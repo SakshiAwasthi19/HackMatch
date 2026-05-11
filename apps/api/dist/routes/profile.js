@@ -100,4 +100,39 @@ router.put('/', upload.single('avatar'), async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+// GET current user's teams
+router.get('/teams', async (req, res) => {
+    try {
+        const session = await auth.api.getSession({ headers: req.headers });
+        if (!session)
+            return res.status(401).json({ message: 'Unauthorized' });
+        const userId = session.user.id;
+        const memberships = await prisma.teamMember.findMany({
+            where: { userId },
+            include: {
+                team: {
+                    include: {
+                        hackathon: {
+                            select: { name: true }
+                        }
+                    }
+                }
+            }
+        });
+        const teams = memberships.map(m => ({
+            id: m.teamId,
+            name: m.team.name,
+            lookingFor: m.team.lookingFor,
+            hackathon: {
+                name: m.team.hackathon.name
+            },
+            currentUserRole: m.role
+        }));
+        res.json(teams);
+    }
+    catch (error) {
+        console.error('Error fetching user teams:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
 export default router;
