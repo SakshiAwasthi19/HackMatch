@@ -18,12 +18,28 @@ export const pushNotification = async (channelName: string, eventName: string, p
   }
   
   const channel = supabase.channel(channelName);
-  await channel.send({
-    type: 'broadcast',
-    event: eventName,
-    payload,
-  });
   
-  // Optionally, we could remove the channel if we don't want to keep it around on the backend
-  supabase.removeChannel(channel);
+  return new Promise((resolve) => {
+    channel.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        const result = await channel.send({
+          type: 'broadcast',
+          event: eventName,
+          payload,
+        });
+        
+        if (result !== 'ok') {
+          console.error(`Failed to send realtime event: ${result}`);
+        } else {
+          console.log(`Successfully broadcasted ${eventName} to ${channelName}`);
+        }
+        
+        supabase.removeChannel(channel);
+        resolve(true);
+      } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+        console.error(`Supabase realtime connection error: ${status}`);
+        resolve(false);
+      }
+    });
+  });
 };

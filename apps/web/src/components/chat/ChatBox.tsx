@@ -76,18 +76,21 @@ export function ChatBox({ chatId, currentUser }: ChatBoxProps) {
     fetchMessages();
 
     // Subscribe to realtime broadcast
+    console.log(`Subscribing to realtime channel: chat:${chatId}`);
     const channel = supabase.channel(`chat:${chatId}`);
     
     channel
-      .on("broadcast", { event: "new_message" }, (payload: { payload: unknown }) => {
-        const newMessage = payload.payload as ChatMessage;
+      .on("broadcast", { event: "new_message" }, (payload: { payload: ChatMessage }) => {
+        console.log("Realtime message received:", payload);
+        const newMessage = payload.payload;
         setMessages((prev) => {
-          // Check if message already exists (we might have just sent it)
           if (prev.some(m => m.id === newMessage.id)) return prev;
           return [...prev, newMessage];
         });
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`Realtime subscription status for chat:${chatId}:`, status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
