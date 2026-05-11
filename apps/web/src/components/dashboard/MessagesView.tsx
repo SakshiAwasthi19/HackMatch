@@ -53,7 +53,7 @@ interface Chat {
 
 type FilterType = 'all' | 'teams' | 'direct';
 
-export default function MessagesView({ initialUserId }: { initialUserId?: string | null }) {
+export default function MessagesView({ initialUserId, initialChatId }: { initialUserId?: string | null, initialChatId?: string | null }) {
   const { data: session } = useSession();
   const [chats, setChats] = useState<Chat[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,7 +94,14 @@ export default function MessagesView({ initialUserId }: { initialUserId?: string
         
         // Auto-select chat
         if (enrichedChats.length > 0) {
-          if (initialUserId) {
+          if (initialChatId) {
+            const targetChat = enrichedChats.find((c: Chat) => c.id === initialChatId);
+            if (targetChat) {
+              setSelectedChatId(targetChat.id);
+            } else if (!selectedChatId) {
+              setSelectedChatId(enrichedChats[0].id);
+            }
+          } else if (initialUserId) {
             const targetChat = enrichedChats.find((c: Chat) => 
               c.type === 'DM' && c.members.some(m => m.userId === initialUserId)
             );
@@ -113,7 +120,7 @@ export default function MessagesView({ initialUserId }: { initialUserId?: string
     } finally {
       setLoading(false);
     }
-  }, [initialUserId, selectedChatId]);
+  }, [initialUserId, initialChatId, selectedChatId]);
 
   useEffect(() => {
     if (session?.user) {

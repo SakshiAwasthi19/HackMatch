@@ -30,6 +30,7 @@ export default function Dashboard() {
   const [preSelectedMatchHackathonId] = useState<string | null>(null);
   const [matchData, setMatchData] = useState<SwipeResult | null>(null);
   const [targetChatUserId, setTargetChatUserId] = useState<string | null>(null);
+  const [targetChatId, setTargetChatId] = useState<string | null>(null);
   const [swipeRefreshKey, setSwipeRefreshKey] = useState(0);
   const [currentUserProfile, setCurrentUserProfile] = useState<{ title?: string | null } | null>(null);
   const [isHydrating, setIsHydrating] = useState(true);
@@ -118,6 +119,10 @@ export default function Dashboard() {
   const handleTabChange = (tab: TabType) => {
     if (tab === 'admin') setAdminTab('dashboard');
     if (tab === 'swipe') setSwipeRefreshKey(prev => prev + 1);
+    if (tab !== 'messages') {
+      setTargetChatUserId(null);
+      setTargetChatId(null);
+    }
     setActiveTab(tab);
     setDetailHackathon(null);
   };
@@ -198,7 +203,7 @@ export default function Dashboard() {
             )}
 
             {activeTab === 'messages' && (
-              <MessagesView initialUserId={targetChatUserId} />
+              <MessagesView initialUserId={targetChatUserId} initialChatId={targetChatId} />
             )}
 
             {activeTab === 'profile' && (
@@ -223,6 +228,11 @@ export default function Dashboard() {
           matchType={matchData.matchType}
           relatedId={matchData.relatedId}
           onClose={() => setMatchData(null)} 
+          onAction={({ chatId }) => {
+            setMatchData(null);
+            if (chatId) setTargetChatId(chatId);
+            setActiveTab('messages');
+          }}
         />
       )}
     </div>

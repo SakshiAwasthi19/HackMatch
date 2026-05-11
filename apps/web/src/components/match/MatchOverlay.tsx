@@ -21,6 +21,7 @@ interface MatchOverlayProps {
   currentUserImage?: string | null;
   currentUserTitle?: string | null;
   onClose: () => void;
+  onAction?: (data: { chatId?: string | null, teamId?: string | null }) => void;
   // Invitation specific
   matchType?: 'match' | 'teamInvite' | 'dm';
   relatedId?: string; // Notification ID
@@ -66,6 +67,7 @@ export default function MatchOverlay({
   currentUserImage,
   currentUserTitle,
   onClose,
+  onAction,
   matchType = 'match',
   relatedId
 }: MatchOverlayProps) {
@@ -231,8 +233,13 @@ export default function MatchOverlay({
                 <button
                   onClick={() => {
                     onClose();
-                    if (chatId) router.push(`/dashboard/chats/${chatId}`);
-                    else if (teamId) router.push(`/dashboard/teams/${teamId}`);
+                    if (onAction) {
+                      onAction({ chatId, teamId });
+                    } else {
+                      // Fallback if no onAction provided
+                      if (chatId) router.push(`/dashboard/messages?chatId=${chatId}`);
+                      else router.push('/dashboard/messages');
+                    }
                   }}
                   className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-5 rounded-2xl transition-all flex items-center justify-center gap-3 shadow-xl shadow-indigo-600/20 active:scale-95"
                 >
