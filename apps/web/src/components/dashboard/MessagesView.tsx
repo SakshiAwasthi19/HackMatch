@@ -160,28 +160,26 @@ export default function MessagesView({ initialUserId }: { initialUserId?: string
       {/* Sidebar - Conversation List (Redesigned) */}
       <div className="w-80 border-r border-white/5 flex flex-col bg-[#0a0a0f]">
         <div className="p-8 pb-4">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-black text-white tracking-tighter">Messages</h2>
-            <button className="p-2.5 bg-white/5 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-white transition-all">
-              <Edit3 className="w-5 h-5" />
+          <div className="flex items-center justify-between mb-6">
+            {/* Filters */}
+            <div className="flex gap-2">
+              {(['all', 'teams', 'direct'] as FilterType[]).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setActiveFilter(f)}
+                  className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                    activeFilter === f 
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' 
+                      : 'bg-zinc-900 text-zinc-500 hover:text-zinc-300'
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+            <button className="p-2 bg-white/5 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-white transition-all">
+              <Edit3 className="w-4 h-4" />
             </button>
-          </div>
-
-          {/* Filters */}
-          <div className="flex gap-2 mb-6">
-            {(['all', 'teams', 'direct'] as FilterType[]).map((f) => (
-              <button
-                key={f}
-                onClick={() => setActiveFilter(f)}
-                className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
-                  activeFilter === f 
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' 
-                    : 'bg-zinc-900 text-zinc-500 hover:text-zinc-300'
-                }`}
-              >
-                {f}
-              </button>
-            ))}
           </div>
 
           {/* Search bar */}
