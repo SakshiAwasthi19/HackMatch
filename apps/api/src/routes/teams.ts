@@ -33,6 +33,9 @@ router.get('/:teamId', requiredAuth, async (req: any, res: Response) => {
       where: { id: teamId },
       include: {
         hackathon: { select: { id: true, name: true } },
+        resources: {
+          orderBy: { createdAt: 'desc' }
+        },
         members: {
           include: {
             user: {
@@ -42,6 +45,11 @@ router.get('/:teamId', requiredAuth, async (req: any, res: Response) => {
                 image: true,
                 college: true,
                 city: true,
+                skills: {
+                  include: {
+                    skill: true
+                  }
+                }
               },
             },
           },
@@ -64,6 +72,76 @@ router.get('/:teamId', requiredAuth, async (req: any, res: Response) => {
   } catch (error) {
     console.error('Error fetching team:', error);
     res.status(500).json({ message: 'Error fetching team' });
+  }
+});
+
+// ─────────────────────────────────────────────────────
+// POST /api/teams/:teamId/resources — Add a resource
+// ─────────────────────────────────────────────────────
+router.post('/:teamId/resources', requiredAuth, async (req: any, res: Response) => {
+  try {
+    const { teamId } = req.params;
+    const { title, url, type } = req.body;
+    const userId: string = req.session.user.id;
+
+    if (!title || !url || !type) {
+      return res.status(400).json({ message: 'Title, URL, and Type are required' });
+    }
+
+    // Verify user is a member
+    const membership = await prisma.teamMember.findFirst({
+      where: { teamId, userId },
+    });
+
+    if (!membership) {
+      return res.status(403).json({ message: 'Only team members can add resources' });
+    }
+
+    const resource = await prisma.projectResource.create({
+      data: {
+        teamId,
+        title,
+        url,
+        type,
+      }
+    });
+
+    res.status(201).json(resource);
+  } catch (error) {
+    console.error('Error adding resource:', error);
+    res.status(500).json({ message: 'Error adding resource' });
+  }
+});
+
+// ─────────────────────────────────────────────────────
+// DELETE /api/teams/resources/:resourceId — Delete a resource
+// ─────────────────────────────────────────────────────
+router.delete('/resources/:resourceId', requiredAuth, async (req: any, res: Response) => {
+  try {
+    const { resourceId } = req.params;
+    const userId: string = req.session.user.id;
+
+    const resource = await prisma.projectResource.findUnique({
+      where: { id: resourceId },
+      include: { team: { include: { members: true } } }
+    });
+
+    if (!resource) return res.status(404).json({ message: 'Resource not found' });
+
+    // Verify user is a member of the team
+    const isMember = resource.team.members.some(m => m.userId === userId);
+    if (!isMember) {
+      return res.status(403).json({ message: 'You do not have permission to delete this resource' });
+    }
+
+    await prisma.projectResource.delete({
+      where: { id: resourceId }
+    });
+
+    res.json({ message: 'Resource deleted' });
+  } catch (error) {
+    console.error('Error deleting resource:', error);
+    res.status(500).json({ message: 'Error deleting resource' });
   }
 });
 

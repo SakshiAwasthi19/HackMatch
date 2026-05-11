@@ -209,6 +209,19 @@ model Team {
   members     TeamMember[]
   matches     Match[]
   chats       Chat[]
+  resources   ProjectResource[]
+}
+
+model ProjectResource {
+  id        String   @id @default(cuid())
+  teamId    String
+  title     String
+  url       String
+  type      String   // LINK, IMAGE, DOCUMENT
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
 }
 
 enum TeamRole {

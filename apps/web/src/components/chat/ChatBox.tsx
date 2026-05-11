@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { supabase } from "@/lib/supabase";
 import { apiFetch } from "@/lib/auth-client";
-import { Send, Loader2 } from "lucide-react";
+import { Send, Loader2, Video, Phone, MoreVertical, PlusCircle, Smile } from "lucide-react";
 import Image from "next/image";
 
 interface ChatMessage {
@@ -26,9 +26,11 @@ interface ChatBoxProps {
     name: string;
     image?: string | null;
   };
+  teamName?: string | null;
+  memberCount?: number;
 }
 
-export function ChatBox({ chatId, currentUser }: ChatBoxProps) {
+export function ChatBox({ chatId, currentUser, teamName, memberCount }: ChatBoxProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState("");
   const [loading, setLoading] = useState(true);
@@ -49,9 +51,6 @@ export function ChatBox({ chatId, currentUser }: ChatBoxProps) {
       if (!res.ok) throw new Error("Failed to fetch messages");
       
       const data: ChatMessage[] = await res.json();
-      
-      // The API returns messages ordered by createdAt DESC (newest first).
-      // We need to display them oldest first, so we reverse them.
       const orderedData = [...data].reverse();
       
       if (cursor) {
@@ -60,7 +59,6 @@ export function ChatBox({ chatId, currentUser }: ChatBoxProps) {
         setMessages(orderedData);
       }
       
-      // If we got exactly 30 messages, there might be more to fetch
       setHasMore(data.length === 30);
     } catch (err) {
       console.error("Error fetching messages:", err);
@@ -71,34 +69,27 @@ export function ChatBox({ chatId, currentUser }: ChatBoxProps) {
   }, [chatId]);
 
   useEffect(() => {
-    // Initial fetch
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchMessages();
-
-    // Subscribe to realtime broadcast
-    console.log(`Subscribing to realtime channel: chat:${chatId}`);
+    const timer = setTimeout(() => {
+      void fetchMessages();
+    }, 0);
     const channel = supabase.channel(`chat:${chatId}`);
     
     channel
       .on("broadcast", { event: "new_message" }, (payload: { payload: ChatMessage }) => {
-        console.log("Realtime message received:", payload);
         const newMessage = payload.payload;
         setMessages((prev) => {
           if (prev.some(m => m.id === newMessage.id)) return prev;
           return [...prev, newMessage];
         });
       })
-      .subscribe((status) => {
-        console.log(`Realtime subscription status for chat:${chatId}:`, status);
-      });
+      .subscribe();
 
     return () => {
+      clearTimeout(timer);
       supabase.removeChannel(channel);
     };
   }, [chatId, fetchMessages]);
 
-
-  // Scroll to bottom when new messages arrive (if we were already at the bottom)
   useEffect(() => {
     if (!loadingMore) {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -107,11 +98,8 @@ export function ChatBox({ chatId, currentUser }: ChatBoxProps) {
 
   const handleScroll = () => {
     if (!scrollContainerRef.current) return;
-    
-    // If scrolled to top and we have more messages, fetch older ones
     if (scrollContainerRef.current.scrollTop === 0 && hasMore && !loadingMore && messages.length > 0) {
       setLoadingMore(true);
-      // The oldest message is at the start of the array
       const oldestMessageId = messages[0].id;
       fetchMessages(oldestMessageId);
     }
@@ -123,7 +111,7 @@ export function ChatBox({ chatId, currentUser }: ChatBoxProps) {
 
     setSending(true);
     const content = inputValue.trim();
-    setInputValue(""); // Optimistic clear
+    setInputValue("");
 
     try {
       const res = await apiFetch(`/api/chat/${chatId}/messages`, {
@@ -132,13 +120,8 @@ export function ChatBox({ chatId, currentUser }: ChatBoxProps) {
         body: JSON.stringify({ content }),
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to send message");
-      }
+      if (!res.ok) throw new Error("Failed to send message");
       
-      // We don't necessarily need to add the message manually because
-      // the broadcast event will be received, but doing it manually makes it faster
-      // and we have a check to prevent duplicates.
       const newMessage = await res.json();
       setMessages((prev) => {
         if (prev.some(m => m.id === newMessage.id)) return prev;
@@ -146,7 +129,6 @@ export function ChatBox({ chatId, currentUser }: ChatBoxProps) {
       });
     } catch (err) {
       console.error("Error sending message:", err);
-      // Revert optimistic clear on failure (simple version)
       setInputValue(content);
     } finally {
       setSending(false);
@@ -155,70 +137,119 @@ export function ChatBox({ chatId, currentUser }: ChatBoxProps) {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center bg-zinc-900 rounded-xl border border-white/10">
-        <Loader2 className="w-8 h-8 text-white/50 animate-spin" />
+      <div className="flex h-full items-center justify-center bg-[#050508]">
+        <Loader2 className="w-8 h-8 text-indigo-500 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-full bg-zinc-900 rounded-xl border border-white/10 overflow-hidden">
+    <div className="flex flex-col h-full bg-[#050508] relative">
+      {/* Chat Header */}
+      <div className="h-24 px-8 border-b border-white/5 flex items-center justify-between bg-[#0a0a0f]/50 backdrop-blur-xl z-20">
+        <div className="flex items-center gap-4">
+          <div className="relative w-12 h-12">
+            <div className="w-full h-full rounded-2xl bg-indigo-600/20 flex items-center justify-center text-indigo-400 font-black">
+              {teamName ? teamName.charAt(0) : "U"}
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-[3px] border-[#0a0a0f]" />
+          </div>
+          <div>
+            <h3 className="text-lg font-black text-white tracking-tight leading-none mb-1">
+              {teamName || "Direct Message"}
+            </h3>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">
+                {memberCount || 2} Members • Online
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button className="p-3 hover:bg-white/5 rounded-2xl text-zinc-500 hover:text-white transition-all">
+            <Video className="w-5 h-5" />
+          </button>
+          <button className="p-3 hover:bg-white/5 rounded-2xl text-zinc-500 hover:text-white transition-all">
+            <Phone className="w-5 h-5" />
+          </button>
+          <button className="p-3 hover:bg-white/5 rounded-2xl text-zinc-500 hover:text-white transition-all">
+            <MoreVertical className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+
       {/* Messages Area */}
       <div 
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto p-4 space-y-4"
+        className="flex-1 overflow-y-auto no-scrollbar p-8 pt-4 space-y-6"
       >
+        <div className="flex justify-center mb-10">
+          <span className="px-4 py-1.5 bg-zinc-900/50 rounded-full text-[10px] font-black text-zinc-500 uppercase tracking-[0.2em] border border-white/5">Today</span>
+        </div>
+
         {loadingMore && (
           <div className="flex justify-center py-2">
-            <Loader2 className="w-5 h-5 text-white/50 animate-spin" />
+            <Loader2 className="w-5 h-5 text-indigo-500 animate-spin" />
           </div>
         )}
         
         {messages.length === 0 ? (
-          <div className="h-full flex items-center justify-center text-white/40 italic">
-            No messages yet. Say hello!
+          <div className="h-full flex flex-col items-center justify-center text-zinc-600 gap-4">
+            <div className="w-16 h-16 rounded-[1.5rem] bg-white/5 flex items-center justify-center">
+               <PlusCircle className="w-8 h-8 opacity-20" />
+            </div>
+            <p className="text-[10px] font-black uppercase tracking-widest">No transmissions recorded</p>
           </div>
         ) : (
-          messages.map((msg) => {
+          messages.map((msg, idx) => {
             const isMe = msg.senderId === currentUser.id;
+            const prevMsg = messages[idx - 1];
+            const isConsecutive = prevMsg?.senderId === msg.senderId;
+
             return (
-              <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                <div className={`flex max-w-[80%] ${isMe ? 'flex-row-reverse' : 'flex-row'} items-end gap-2`}>
+              <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} group animate-in fade-in slide-in-from-bottom-1 duration-300`}>
+                <div className={`flex max-w-[75%] ${isMe ? 'flex-row-reverse' : 'flex-row'} items-end gap-3`}>
                   
-                  {/* Avatar */}
-                  {!isMe && msg.sender && (
-                    <div className="w-8 h-8 rounded-full overflow-hidden bg-zinc-800 flex-shrink-0">
-                      {msg.sender.image ? (
+                  {/* Avatar for others */}
+                  {!isMe && !isConsecutive && (
+                    <div className="w-9 h-9 rounded-[14px] overflow-hidden bg-zinc-800 flex-shrink-0 border border-white/5 shadow-xl">
+                      {msg.sender?.image ? (
                         <Image 
                           src={msg.sender.image} 
                           alt={msg.sender.name || "User"} 
-                          width={32} 
-                          height={32}
+                          width={36} 
+                          height={36}
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-xs font-medium text-white/50 uppercase">
-                          {msg.sender.name?.charAt(0) || "?"}
+                        <div className="w-full h-full flex items-center justify-center text-[10px] font-black text-zinc-500 uppercase">
+                          {msg.sender?.name?.charAt(0) || "?"}
                         </div>
                       )}
                     </div>
                   )}
+                  {(!isMe && isConsecutive) && <div className="w-9 flex-shrink-0" />}
 
                   {/* Message Bubble */}
                   <div className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
-                    {!isMe && msg.sender && (
-                      <span className="text-xs text-white/40 mb-1 ml-1">{msg.sender.name}</span>
+                    {!isMe && !isConsecutive && (
+                      <span className="text-[10px] font-bold text-zinc-500 mb-1.5 ml-1">{msg.sender?.name}</span>
                     )}
                     <div 
-                      className={`px-4 py-2 rounded-2xl ${
+                      className={`relative px-5 py-3 shadow-xl ${
                         isMe 
-                          ? 'bg-rose-600 text-white rounded-br-sm' 
-                          : 'bg-zinc-800 text-white/90 border border-white/5 rounded-bl-sm'
+                          ? 'bg-gradient-to-br from-indigo-600 to-purple-700 text-white rounded-[20px] rounded-br-none' 
+                          : 'bg-[#14141c] text-zinc-300 border border-white/5 rounded-[20px] rounded-bl-none'
                       }`}
                       style={{ wordBreak: 'break-word' }}
                     >
-                      {msg.content}
+                      <span className="text-[13px] font-medium leading-relaxed">{msg.content}</span>
+                      
+                      {/* Message Status/Tail (Visual) */}
+                      {isMe && !isConsecutive && (
+                        <div className="absolute bottom-0 -right-1 w-4 h-4 bg-purple-700 rounded-bl-full" />
+                      )}
                     </div>
                   </div>
                   
@@ -230,24 +261,32 @@ export function ChatBox({ chatId, currentUser }: ChatBoxProps) {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div className="p-3 border-t border-white/10 bg-zinc-950/50">
-        <form onSubmit={sendMessage} className="flex gap-2">
+      {/* Input Area (Redesigned) */}
+      <div className="p-6 px-8 border-t border-white/5 bg-[#0a0a0f]/80 backdrop-blur-xl">
+        <form onSubmit={sendMessage} className="flex gap-4 items-center bg-[#14141c] border border-white/10 rounded-[2rem] p-1.5 pl-5 focus-within:border-indigo-500/50 transition-all shadow-2xl">
+          <button type="button" className="text-zinc-600 hover:text-zinc-400 p-1">
+            <PlusCircle className="w-5 h-5" />
+          </button>
           <input
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Type a message..."
-            className="flex-1 bg-zinc-900 border border-white/10 rounded-full px-4 py-2 text-sm text-white placeholder-white/40 focus:outline-none focus:border-rose-500/50 focus:ring-1 focus:ring-rose-500/50 transition-all"
+            className="flex-1 bg-transparent border-none text-sm text-white placeholder-zinc-700 focus:outline-none focus:ring-0 py-2.5"
             disabled={sending}
           />
-          <button
-            type="submit"
-            disabled={!inputValue.trim() || sending}
-            className="w-10 h-10 rounded-full bg-rose-600 flex items-center justify-center text-white flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-rose-500 transition-colors"
-          >
-            {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-          </button>
+          <div className="flex items-center gap-2">
+            <button type="button" className="text-zinc-600 hover:text-zinc-400 p-1">
+              <Smile className="w-5 h-5" />
+            </button>
+            <button
+              type="submit"
+              disabled={!inputValue.trim() || sending}
+              className="w-11 h-11 rounded-full bg-indigo-600 flex items-center justify-center text-white flex-shrink-0 disabled:opacity-50 disabled:grayscale hover:bg-indigo-500 hover:shadow-lg hover:shadow-indigo-600/30 transition-all active:scale-95"
+            >
+              {sending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+            </button>
+          </div>
         </form>
       </div>
     </div>
