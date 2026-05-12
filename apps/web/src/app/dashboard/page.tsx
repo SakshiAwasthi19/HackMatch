@@ -47,9 +47,11 @@ function DashboardContent() {
     const userId = searchParams.get('userId');
 
     if (tab) {
-      setActiveTab(tab);
-      if (chatId) setTargetChatId(chatId);
-      if (userId) setTargetChatUserId(userId);
+      setTimeout(() => {
+        setActiveTab(tab);
+        if (chatId) setTargetChatId(chatId);
+        if (userId) setTargetChatUserId(userId);
+      }, 0);
     }
   }, [searchParams]);
 
