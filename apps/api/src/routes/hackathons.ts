@@ -203,8 +203,8 @@ router.get('/:id/swipe-deck', requiredAuth, async (req: any, res: Response) => {
       }
     });
     const fullTeamIds = teamsWithCounts
-      .filter(t => t._count.members >= hackathon.maxTeamSize)
-      .map(t => t.id);
+      .filter((t: any) => t._count.members >= hackathon.maxTeamSize)
+      .map((t: any) => t.id);
 
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
