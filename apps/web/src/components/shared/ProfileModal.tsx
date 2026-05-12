@@ -14,7 +14,7 @@ export interface ProfileModalUser {
   city?: string | null;
   linkedinUrl?: string | null;
   githubUrl?: string | null;
-  skills?: string[] | { skill: { name: string } }[];
+  skills?: string[] | { skill: { name: string } }[] | { name: string }[];
 }
 
 interface ProfileModalProps {

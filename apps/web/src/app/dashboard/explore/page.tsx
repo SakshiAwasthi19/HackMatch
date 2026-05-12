@@ -73,7 +73,12 @@ export default function ExplorePage() {
       <AnimatePresence>
         {matchResult && (
           <MatchOverlay
-            match={matchResult}
+            isOpen={!!matchResult}
+            matchedUser={matchResult.matchedUser}
+            chatId={matchResult.chatId}
+            teamId={matchResult.teamId}
+            hackathonName={matchResult.hackathonName || 'Global Explore'}
+            currentUserImage={session.user.image}
             onClose={() => setMatchResult(null)}
           />
         )}
@@ -85,6 +90,7 @@ export default function ExplorePage() {
           user={connectingUser}
           isOpen={!!connectingUser}
           onClose={() => setConnectingUser(null)}
+          onSuccess={() => {}}
         />
       )}
     </div>
