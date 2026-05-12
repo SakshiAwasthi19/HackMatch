@@ -26,7 +26,11 @@ export default function SwipeCard({ user, style, bind, isTop, onViewProfile }: S
   };
 
   const normalizedSkills = Array.isArray(user.skills) 
-    ? user.skills.map(s => (typeof s === 'string' ? s : s.skill?.name || ''))
+    ? user.skills.map(s => {
+        if (typeof s === 'string') return s;
+        // Handle { id, name } OR { skill: { id, name } }
+        return (s as any).name || (s as any).skill?.name || '';
+      }).filter(Boolean)
     : [];
 
   return (
@@ -35,42 +39,58 @@ export default function SwipeCard({ user, style, bind, isTop, onViewProfile }: S
       style={{
         ...style,
         position: 'absolute' as const,
-        width: '380px',
-        height: '580px',
+        width: 'min(400px, 95vw)',
+        height: 'min(580px, 80vh)',
         touchAction: 'none',
         willChange: 'transform',
         transformOrigin: '50% 100%',
         isolation: 'isolate',
-        backgroundClip: 'padding-box',
-        borderRadius: '20px',
+        borderRadius: '24px',
         overflow: 'hidden',
-        backgroundColor: 'rgb(13, 13, 20)',
-        boxShadow: isTop ? '0 20px 60px rgba(0,0,0,0.8)' : '0 10px 30px rgba(0,0,0,0.4)',
+        backgroundColor: '#050505',
+        border: '1px solid rgba(255,255,255,0.05)',
+        boxShadow: isTop ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)' : 'none',
       }}
-      className="select-none"
+      className="select-none flex flex-col"
     >
-      {/* SECTION 1 - Hero Image Area (55%) */}
-      <div className="relative h-[320px] w-full overflow-hidden bg-zinc-900">
+      {/* SECTION 1 - Hero Area (Visual Focus) */}
+      <div className="relative h-[55%] w-full overflow-hidden">
         {user.image ? (
           <Image 
             src={user.image} 
             alt={user.name} 
             fill 
-            className="object-cover object-[center_top]"
+            className="object-cover transition-transform duration-[2000ms] group-hover:scale-110"
             priority={isTop}
           />
         ) : (
           <div className="w-full h-full" style={{ background: getGradient(user.name) }} />
         )}
         
-        {/* Strong Bottom Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent via-50% to-[#0d0d14] opacity-80" />
-        <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#0d0d14] to-transparent" />
+        {/* Modern Depth Overlays */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent opacity-80" />
+        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#050505] to-transparent" />
 
-        {/* Name Overlay */}
-        <h3 className="absolute bottom-3 left-5 text-[28px] font-bold text-white tracking-tight drop-shadow-lg">
-          {user.name}
-        </h3>
+        {/* Floating Identity Badge */}
+        <div className="absolute bottom-4 left-5 right-5">
+          <h3 className="text-2xl font-bold text-white tracking-tight leading-none">
+            {user.name}
+          </h3>
+          <div className="flex items-center gap-2 mt-1.5 opacity-90">
+            <span className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">{user.title || 'Tech Enthusiast'}</span>
+            <div className="w-1 h-1 rounded-full bg-zinc-600" />
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">{user.city || 'Global'}</span>
+          </div>
+        </div>
+
+        {/* IN A TEAM Badge */}
+        {user.hasTeam && (
+          <div className="absolute top-4 right-4 z-20">
+            <div className="bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[9px] font-bold uppercase tracking-widest rounded-md px-2 py-1 backdrop-blur-md">
+              In Team
+            </div>
+          </div>
+        )}
 
         {/* LIKE / NOPE Overlays */}
         {isTop && (
@@ -79,82 +99,73 @@ export default function SwipeCard({ user, style, bind, isTop, onViewProfile }: S
               style={{
                 opacity: swipeX?.to((x: number) => Math.min(Math.max(x / 100, 0), 1)) ?? 0,
               }}
-              className="absolute top-8 left-6 -rotate-[15deg] border-[3px] border-[rgb(34,197,94)] bg-[rgba(34,197,94,0.1)] rounded-xl px-5 py-2 z-50 pointer-events-none"
+              className="absolute top-10 left-8 -rotate-[12deg] border-4 border-emerald-500 bg-emerald-500/10 rounded-2xl px-6 py-2 z-50 pointer-events-none"
             >
-              <span className="text-[rgb(34,197,94)] text-[32px] font-black uppercase tracking-[0.15em]">LIKE</span>
+              <span className="text-emerald-500 text-3xl font-black uppercase tracking-widest">LIKE</span>
             </animated.div>
 
             <animated.div
               style={{
                 opacity: swipeX?.to((x: number) => Math.min(Math.max(-x / 100, 0), 1)) ?? 0,
               }}
-              className="absolute top-8 right-6 rotate-[15deg] border-[3px] border-[rgb(239,68,68)] bg-[rgba(239,68,68,0.1)] rounded-xl px-5 py-2 z-50 pointer-events-none"
+              className="absolute top-10 right-8 rotate-[12deg] border-4 border-red-500 bg-red-500/10 rounded-2xl px-6 py-2 z-50 pointer-events-none"
             >
-              <span className="text-[rgb(239,68,68)] text-[32px] font-black uppercase tracking-[0.15em]">NOPE</span>
+              <span className="text-red-500 text-3xl font-black uppercase tracking-widest">NOPE</span>
             </animated.div>
           </>
         )}
       </div>
 
-      {/* SECTION 2 - Info Area (45%) */}
-      <div className="h-[260px] bg-[#0d0d14] p-[16px_20px] flex flex-col">
-        {/* Role/Title */}
-        <div className="text-[11px] font-semibold text-[rgb(139,92,246)] uppercase tracking-[0.12em] line-clamp-1">
-          {user.title || 'Tech Enthusiast'}
-        </div>
+      {/* SECTION 2 - Information & Context */}
+      <div className="flex-1 p-5 flex flex-col justify-between bg-zinc-950/20">
+        <div className="space-y-4">
+          {/* Bio */}
+          <p className="text-[13px] text-zinc-400 leading-relaxed font-medium line-clamp-3 italic opacity-80">
+            &ldquo;{user.bio || 'Building the future, one line at a time.'}&rdquo;
+          </p>
 
-        {/* Bio */}
-        <p className="text-[13px] text-[rgb(180,180,195)] leading-relaxed line-clamp-3 mt-2 h-[58px]">
-          {user.bio || 'Building the future of tech, one line of code at a time. Looking for like-minded dreamers to join the squad!'}
-        </p>
-
-        {/* Skills Row */}
-        <div className="flex flex-wrap gap-[6px] mt-[10px]">
-          {normalizedSkills.slice(0, 4).map((skill, idx) => (
-            <span
-              key={idx}
-              className="bg-[rgba(139,92,246,0.15)] border border-[rgba(139,92,246,0.4)] text-[rgb(196,181,253)] rounded-[4px] px-[10px] py-[3px] text-[11px] font-medium uppercase tracking-[0.06em]"
-            >
-              {skill}
-            </span>
-          ))}
-          {normalizedSkills.length > 4 && (
-            <span className="bg-zinc-800 text-zinc-500 rounded-[4px] px-[10px] py-[3px] text-[11px] font-medium uppercase tracking-[0.06em]">
-              +{normalizedSkills.length - 4}
-            </span>
-          )}
-        </div>
-
-        {/* LOOKING FOR row */}
-        {user.lookingFor && user.lookingFor.length > 0 && (
-          <div className="mt-3 flex items-center gap-2">
-            <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider whitespace-nowrap">LOOKING FOR:</span>
-            <div className="flex flex-wrap gap-1.5 overflow-hidden">
-              {user.lookingFor.slice(0, 2).map((tag, idx) => (
+          {/* Skills & Looking For - Integrated Grid */}
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-1.5">
+              {normalizedSkills.slice(0, 4).map((skill, idx) => (
                 <span
                   key={idx}
-                  className="bg-[rgba(245,158,11,0.15)] border border-[rgba(245,158,11,0.4)] text-[rgb(252,211,77)] rounded-[4px] px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.06em]"
+                  className="bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase tracking-tight"
                 >
-                  {tag}
+                  {skill}
                 </span>
               ))}
             </div>
-          </div>
-        )}
 
-        {/* Action Button */}
-        <div className="mt-auto pt-2">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onViewProfile?.(user);
-            }}
-            className="w-full h-10 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[12px] font-medium uppercase tracking-[0.08em] rounded-lg transition-colors flex items-center justify-center gap-2"
-          >
-            <Eye className="w-3.5 h-3.5" />
-            View Full Profile
-          </button>
+            {user.lookingFor && user.lookingFor.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Wants:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {user.lookingFor.slice(0, 2).map((tag, idx) => (
+                    <span
+                      key={idx}
+                      className="text-amber-400/80 text-[10px] font-bold uppercase"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* Action Button - Premium Look */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onViewProfile?.(user);
+          }}
+          className="w-full h-11 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800/50 text-white text-[11px] font-bold uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 mt-4 active:scale-95"
+        >
+          <Eye className="w-4 h-4 text-zinc-500" />
+          View Full Profile
+        </button>
       </div>
     </animated.div>
   );

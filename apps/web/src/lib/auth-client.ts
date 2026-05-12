@@ -20,7 +20,9 @@ export const { useSession, signIn, signOut, signUp } = authClient;
  * Uses both cookies (cross-origin) and bearer token as fallback.
  */
 export async function apiFetch(path: string, options: RequestInit = {}) {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    let apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    
+    // Fallback for Windows localhost issues if needed, but we'll stick to env first
     const token = typeof window !== "undefined" ? localStorage.getItem("bearer_token") : null;
 
     const headers: Record<string, string> = {};
@@ -29,18 +31,41 @@ export async function apiFetch(path: string, options: RequestInit = {}) {
         headers["Authorization"] = `Bearer ${token}`;
     }
 
-    // Don't set Content-Type for FormData (browser sets it with boundary)
-    if (!(options.body instanceof FormData)) {
+    // Only set Content-Type if there's a body and it's not FormData
+    if (options.body && !(options.body instanceof FormData)) {
         headers["Content-Type"] = "application/json";
     }
 
-    return fetch(`${apiUrl}${path}`, {
-        cache: 'no-store', // Prevent aggressive Next.js/Browser GET caching
-        ...options,
-        credentials: "include", // Required for cross-origin cookie auth
-        headers: {
-            ...headers,
-            ...(options.headers as Record<string, string> || {}),
-        },
-    });
+    const url = `${apiUrl}${path}`;
+    
+    try {
+        return await fetch(url, {
+            cache: 'no-store',
+            ...options,
+            credentials: "include",
+            headers: {
+                ...headers,
+                ...(options.headers as Record<string, string> || {}),
+            },
+        });
+    } catch (err) {
+        // If localhost fails, try 127.0.0.1 as a last resort fallback
+        if (apiUrl.includes('localhost')) {
+            const fallbackUrl = url.replace('localhost', '127.0.0.1');
+            try {
+                return await fetch(fallbackUrl, {
+                    cache: 'no-store',
+                    ...options,
+                    credentials: "include",
+                    headers: {
+                        ...headers,
+                        ...(options.headers as Record<string, string> || {}),
+                    },
+                });
+            } catch (secondErr) {
+                throw secondErr;
+            }
+        }
+        throw err;
+    }
 }

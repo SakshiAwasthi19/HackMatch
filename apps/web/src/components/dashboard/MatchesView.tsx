@@ -81,35 +81,30 @@ export default function MatchesView({ initialHackathonId, onTabChange }: Matches
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {matches.map((match) => (
-            <div 
-              key={match.id}
-              className="group bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 border-b-4 border-b-transparent hover:border-b-indigo-500"
-            >
+            <div key={match.id} className="relative flex flex-col">
               <ProfileCard 
                 {...match.matchedUser} 
                 onViewProfile={() => setViewingUser(match.matchedUser)}
               />
-              <div className="px-6 pb-6 pt-2 space-y-4">
-                <div className="flex items-center gap-2 text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 w-fit px-3 py-1 rounded-full">
-                  <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
-                  Match for {match.hackathonName}
+              
+              {/* Contextual Overlay Badge */}
+              <div className="absolute top-4 right-4 z-20 pointer-events-none">
+                <div className="px-2 py-1 bg-indigo-600/90 text-white text-[8px] font-black uppercase tracking-widest rounded-md backdrop-blur-md shadow-lg flex items-center gap-1">
+                  <div className="w-1 h-1 bg-white rounded-full animate-pulse" />
+                  {match.hackathonName}
                 </div>
-                <div className="flex gap-3">
-                  <button 
-                    onClick={() => onTabChange('messages')}
-                    className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-sm font-semibold transition-all active:scale-95"
-                  >
-                    Message
-                  </button>
-                  <button 
-                    onClick={() => setViewingUser(match.matchedUser)}
-                    className="flex-1 py-3 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-900 dark:text-white rounded-2xl text-sm font-semibold transition-all active:scale-95"
-                  >
-                    View Profile
-                  </button>
-                </div>
+              </div>
+
+              {/* Quick Action Footer - Highly Integrated */}
+              <div className="mt-3 flex gap-2">
+                <button 
+                  onClick={() => onTabChange('messages')}
+                  className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-indigo-600/10"
+                >
+                  Message
+                </button>
               </div>
             </div>
           ))}

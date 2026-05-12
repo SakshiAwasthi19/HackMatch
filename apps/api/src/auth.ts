@@ -8,6 +8,7 @@ const isProduction = process.env.NODE_ENV === "production";
 export const auth = betterAuth({
     trustedOrigins: [
         "http://localhost:3000",
+        "http://127.0.0.1:3000",
         process.env.FRONTEND_URL!,
     ].filter(Boolean),
     baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3001",

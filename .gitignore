@@ -16,3 +16,7 @@ node_modules/
 .env
 .env.*
 !.env.example
+
+# Temporary and Uploaded files
+uploads/
+scratch/

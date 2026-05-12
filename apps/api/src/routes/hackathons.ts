@@ -176,85 +176,182 @@ router.post('/:id/register', requiredAuth, async (req: any, res: Response) => {
   }
 });
 
-// GET Swipe Deck (Debug Mode: Returns everyone)
+// GET Swipe Deck (Professional Filtered Mode)
 router.get('/:id/swipe-deck', requiredAuth, async (req: any, res: Response) => {
   try {
     const { id: hackathonId } = req.params;
     const currentUserId = req.session.user.id;
 
-    // 1. Get IDs of people the user has already swiped on for this hackathon
-    const swipedRecords = await prisma.swipe.findMany({
-      where: { senderId: currentUserId, hackathonId },
-      select: { receiverId: true }
-    });
-    const swipedUserIds = swipedRecords.map((s: any) => s.receiverId);
-
-    // 2. Get IDs of people who have already swiped RIGHT on current user (Globally OR for this hackathon)
-    const receivedRightSwipes = await prisma.swipe.findMany({
-      where: { 
-        receiverId: currentUserId, 
-        type: 'RIGHT',
-        senderId: { notIn: [currentUserId, ...swipedUserIds] }
+    // 1. Fetch hackathon details for filtering (eligibility, maxTeamSize)
+    const hackathon = await prisma.hackathon.findUnique({
+      where: { id: hackathonId },
+      select: {
+        eligibilityType: true,
+        eligibleCollegesList: true,
+        maxTeamSize: true,
       },
-      select: { senderId: true }
     });
-    const potentialMatchIds = receivedRightSwipes.map((s: any) => s.senderId);
 
-    // 3. Fetch prioritized users (People who liked you first - either globally or for this hackathon)
+    if (!hackathon) return res.status(404).json({ message: 'Hackathon not found' });
+
+    // 1.5 Fetch full team IDs for this hackathon
+    const teamsWithCounts = await prisma.team.findMany({
+      where: { hackathonId },
+      select: {
+        id: true,
+        _count: { select: { members: true } }
+      }
+    });
+    const fullTeamIds = teamsWithCounts
+      .filter(t => t._count.members >= hackathon.maxTeamSize)
+      .map(t => t.id);
+
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    // 2. Build the complex WHERE clause
+    const whereClause: any = {
+      AND: [
+        // FILTER 1 — Exclude self
+        { id: { not: currentUserId } },
+
+        // FILTER 2 — Exclude already swiped (any direction)
+        {
+          receivedSwipes: {
+            none: {
+              senderId: currentUserId,
+              hackathonId: hackathonId,
+            },
+          },
+        },
+
+        // FILTER 3 — Exclude inactive users (7+ days)
+        { lastActiveAt: { gte: sevenDaysAgo } },
+
+        // FILTER 4 — Exclude users in a FULL team for this hackathon
+        {
+          teamMemberships: {
+            none: {
+              teamId: { in: fullTeamIds },
+            },
+          },
+        },
+
+        // FILTER 5 — Only show users who marked interest in this hackathon
+        {
+          hackathonInterests: {
+            some: {
+              hackathonId: hackathonId,
+            },
+          },
+        },
+
+        // FILTER 7 — Exclude mutually matched users
+        {
+          NOT: {
+            matchesAsUser1: {
+              some: {
+                user2Id: currentUserId,
+                hackathonId: hackathonId,
+              },
+            },
+          },
+        },
+        {
+          NOT: {
+            matchesAsUser2: {
+              some: {
+                user1Id: currentUserId,
+                hackathonId: hackathonId,
+              },
+            },
+          },
+        },
+      ],
+    };
+
+    // FILTER 6 — College eligibility
+    if (hackathon.eligibilityType === 'COLLEGE_SPECIFIC') {
+      whereClause.AND.push({
+        college: {
+          in: hackathon.eligibleCollegesList,
+        },
+      });
+    }
+
+    // 3. Fetch users who swiped RIGHT on current user (Prioritized Array)
     const prioritizedUsers = await prisma.user.findMany({
-      where: { id: { in: potentialMatchIds } },
-      select: {
-        id: true, name: true, image: true, bio: true, title: true,
-        college: true, city: true, linkedinUrl: true, githubUrl: true,
-        skills: { include: { skill: true } }
-      }
-    });
-
-    // 4. Fetch regular users who are specifically interested in this hackathon
-    const interestedRecords = await prisma.hackathonInterest.findMany({
-      where: { 
-        hackathonId,
-        userId: {
-          notIn: [currentUserId, ...swipedUserIds, ...potentialMatchIds]
-        }
+      where: {
+        ...whereClause,
+        sentSwipes: {
+          some: {
+            receiverId: currentUserId,
+            hackathonId: hackathonId,
+            type: 'RIGHT',
+          },
+        },
       },
-      select: { userId: true }
-    });
-    const interestedUserIds = interestedRecords.map((i: any) => i.userId);
-
-    const interestedUsers = await prisma.user.findMany({
-      where: { id: { in: interestedUserIds } },
       select: {
-        id: true, name: true, image: true, bio: true, title: true,
-        college: true, city: true, linkedinUrl: true, githubUrl: true,
-        skills: { include: { skill: true } }
-      }
+        id: true,
+        name: true,
+        college: true,
+        city: true,
+        bio: true,
+        image: true,
+        skills: { include: { skill: true } },
+        teamMemberships: {
+          where: { team: { hackathonId } },
+          include: { team: true },
+        },
+      },
     });
 
-    // 5. Fetch everyone else (Global matching)
+    const prioritizedIds = prioritizedUsers.map((u: any) => u.id);
+
+    // 4. Fetch remaining users
     const otherUsers = await prisma.user.findMany({
       where: {
-        id: {
-          notIn: [currentUserId, ...swipedUserIds, ...potentialMatchIds, ...interestedUserIds]
-        }
+        ...whereClause,
+        id: { notIn: prioritizedIds },
       },
       select: {
-        id: true, name: true, image: true, bio: true, title: true,
-        college: true, city: true, linkedinUrl: true, githubUrl: true,
-        skills: { include: { skill: true } }
+        id: true,
+        name: true,
+        college: true,
+        city: true,
+        bio: true,
+        image: true,
+        skills: { include: { skill: true } },
+        teamMemberships: {
+          where: { team: { hackathonId } },
+          include: { team: true },
+        },
       },
-      take: 40 - prioritizedUsers.length - interestedUsers.length
+      take: 40 - prioritizedUsers.length,
     });
 
-    const users = [
-      ...prioritizedUsers,
-      ...interestedUsers,
-      ...otherUsers
-    ];
+    // 5. Format response
+    const formatUser = (u: any) => {
+      const membership = u.teamMemberships[0];
+      return {
+        id: u.id,
+        name: u.name,
+        college: u.college,
+        city: u.city,
+        bio: u.bio,
+        image: u.image,
+        skills: u.skills.map((s: any) => ({ id: s.skill.id, name: s.skill.name })),
+        hasTeam: !!membership,
+        teamName: membership?.team?.name || null,
+        lookingFor: membership?.team?.lookingFor || [],
+        alreadySwiped: false,
+      };
+    };
 
-    res.json(users);
+    const finalUsers = [...prioritizedUsers.map(formatUser), ...otherUsers.map(formatUser)];
+
+    res.json(finalUsers);
   } catch (error) {
-    console.error('Error fetching swipe deck:', error);
+    console.error('Error fetching hackathon swipe deck:', error);
     res.status(500).json({ message: 'Error fetching swipe deck' });
   }
 });

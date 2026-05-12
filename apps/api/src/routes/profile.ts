@@ -44,6 +44,16 @@ router.put('/', upload.single('avatar') as any, async (req: any, res: Response) 
     const userId = session.user.id;
     const { title, bio, college, city, linkedinUrl, githubUrl, skills } = req.body;
     
+    console.log('--- Profile Update Debug ---');
+    console.log('User ID:', userId);
+    console.log('Body keys:', Object.keys(req.body));
+    console.log('File:', req.file ? {
+      fieldname: req.file.fieldname,
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size
+    } : 'No file received');
+
     // Get current user to preserve image if not changed
     const currentUser = await prisma.user.findUnique({
       where: { id: userId },
@@ -56,11 +66,15 @@ router.put('/', upload.single('avatar') as any, async (req: any, res: Response) 
     if (req.file) {
       try {
         const filename = `avatars/${userId}-${Date.now()}.jpg`;
+        console.log('Attempting upload to Supabase:', filename);
         imageUrl = await uploadAvatar(req.file.buffer, filename);
+        console.log('Upload successful! URL:', imageUrl);
       } catch (uploadErr) {
-        console.error('Avatar upload failed (continuing without it):', uploadErr);
+        console.error('Avatar upload failed:', uploadErr);
         // Don't fail the whole request if avatar upload fails
       }
+    } else {
+      console.log('No file to upload, keeping current image:', imageUrl);
     }
 
     // Parse skills if they come as a string (JSON stringified array)

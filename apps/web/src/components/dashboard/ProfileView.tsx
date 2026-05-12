@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import ProfileCard from '../shared/ProfileCard';
 import Image from 'next/image';
-import { authClient, apiFetch } from '@/lib/auth-client';
+import { authClient, useSession, apiFetch } from '@/lib/auth-client';
 
 const SUGGESTED_SKILLS = [
   'React', 'Next.js', 'TypeScript', 'JavaScript', 'Python',
@@ -29,7 +29,7 @@ const STEPS = [
 ];
 
 export default function ProfileView() {
-  const { data: session } = authClient.useSession();
+  const { data: session, isPending, error: sessionError, refetch } = useSession();
 
   // Multi-step state
   const [currentStep, setCurrentStep] = useState(0);
@@ -140,6 +140,13 @@ export default function ProfileView() {
         const errData = await res.json().catch(() => null);
         throw new Error(errData?.message || 'Failed to save profile');
       }
+
+      const data = await res.json();
+      if (data.image) {
+        setAvatarPreview(data.image);
+      }
+      
+      await refetch();
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (err: unknown) {

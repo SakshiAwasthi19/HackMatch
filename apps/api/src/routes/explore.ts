@@ -12,120 +12,114 @@ const requiredAuth = async (req: any, res: Response, next: any) => {
   next();
 };
 
-// GET /api/explore/swipe-deck
+// GET /api/explore/swipe-deck (Professional Filtered Mode)
 router.get('/swipe-deck', requiredAuth, async (req: any, res: Response) => {
   try {
-    const userId = req.session.user.id;
-    const { skill, page = '1', limit = '20' } = req.query;
-    const skip = (parseInt(page as string) - 1) * parseInt(limit as string);
-    const take = parseInt(limit as string);
+    const currentUserId = req.session.user.id;
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    // 1. Define base filter: Not the current user + active in last 7 days
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    
-    const where: any = {
-      id: { not: userId },
-      lastActiveAt: { gte: sevenDaysAgo },
+    // 1. Build the base WHERE clause
+    const whereClause: any = {
+      AND: [
+        // FILTER 1 — Exclude self
+        { id: { not: currentUserId } },
+
+        // FILTER 2 — Exclude already swiped in Explore context
+        {
+          receivedSwipes: {
+            none: {
+              senderId: currentUserId,
+              hackathonId: null,
+            },
+          },
+        },
+
+        // FILTER 3 — Exclude inactive users (7+ days)
+        { lastActiveAt: { gte: sevenDaysAgo } },
+
+        // FILTER 4 — Exclude mutually matched users in Explore context
+        {
+          NOT: {
+            matchesAsUser1: {
+              some: { user2Id: currentUserId, hackathonId: null },
+            },
+          },
+        },
+        {
+          NOT: {
+            matchesAsUser2: {
+              some: { user1Id: currentUserId, hackathonId: null },
+            },
+          },
+        },
+      ],
     };
 
-    // 2. Add skill filter if provided
-    if (skill) {
-      where.skills = {
-        some: {
-          skill: {
-            name: { equals: skill as string, mode: 'insensitive' }
-          }
-        }
-      };
-    }
-
-    // 3. Find IDs of users who have swiped RIGHT on us but we haven't swiped back
-    const potentialMatchSwipes = await prisma.swipe.findMany({
+    // 2. Fetch users who swiped RIGHT on current user in Explore context (Prioritized)
+    const prioritizedUsers = await prisma.user.findMany({
       where: {
-        receiverId: userId,
-        type: 'RIGHT',
-        hackathonId: null,
-        sender: {
-          NOT: {
-            receivedSwipes: {
-              some: {
-                senderId: userId,
-                hackathonId: null
-              }
-            }
-          }
-        }
-      },
-      select: { senderId: true }
-    });
-    const prioritizedIds = potentialMatchSwipes.map((s: { senderId: string }) => s.senderId);
-
-    // 4. Fetch users with pagination
-    // We fetch a bit more than 'take' to ensure we can sort and still have enough
-    const users = await prisma.user.findMany({
-      where,
-      include: {
-        skills: {
-          include: {
-            skill: true,
+        ...whereClause,
+        sentSwipes: {
+          some: {
+            receiverId: currentUserId,
+            hackathonId: null,
+            type: 'RIGHT',
           },
         },
       },
+      select: {
+        id: true,
+        name: true,
+        college: true,
+        city: true,
+        bio: true,
+        image: true,
+        skills: { include: { skill: true } },
+      },
+    });
+
+    const prioritizedIds = prioritizedUsers.map((u: any) => u.id);
+
+    // 3. Fetch remaining users sorted by lastActiveAt DESC
+    const otherUsers = await prisma.user.findMany({
+      where: {
+        ...whereClause,
+        id: { notIn: prioritizedIds },
+      },
+      select: {
+        id: true,
+        name: true,
+        college: true,
+        city: true,
+        bio: true,
+        image: true,
+        skills: { include: { skill: true } },
+      },
       orderBy: { lastActiveAt: 'desc' },
-      // Pagination is tricky with prioritization. 
-      // For now, we'll apply it after fetching if the total count is small, 
-      // or just rely on the fact that these users are likely active.
-      skip,
-      take,
+      take: 20,
     });
 
-    // 5. Fetch relationship data for these users to determine button states
-    const userIds = users.map((u: any) => u.id);
-
-    const [sentSwipes, receivedSwipes, matches] = await Promise.all([
-      prisma.swipe.findMany({
-        where: { senderId: userId, receiverId: { in: userIds }, hackathonId: null, type: 'RIGHT' },
-      }),
-      prisma.swipe.findMany({
-        where: { receiverId: userId, senderId: { in: userIds }, hackathonId: null, type: 'RIGHT' },
-      }),
-      prisma.match.findMany({
-        where: {
-          OR: [
-            { user1Id: userId, user2Id: { in: userIds } },
-            { user2Id: userId, user1Id: { in: userIds } },
-          ]
-        }
-      })
-    ]);
-
-    const sentIds = new Set(sentSwipes.map((s: any) => s.receiverId));
-    const receivedIds = new Set(receivedSwipes.map((s: any) => s.senderId));
-    const matchedIds = new Set([
-      ...matches.map((m: any) => m.user1Id === userId ? m.user2Id : m.user1Id)
-    ]);
-
-    // 6. Merge status and Sort by prioritization
-    const usersWithStatus = users.map((user: any) => ({
-      ...user,
-      isMatched: matchedIds.has(user.id),
-      hasSentRequest: sentIds.has(user.id),
-      receivedRequest: receivedIds.has(user.id),
-      isPrioritized: prioritizedIds.includes(user.id)
-    }));
-
-    // Sort: Prioritized users first, then by lastActiveAt (which they already are from the query)
-    usersWithStatus.sort((a: any, b: any) => {
-      if (a.isPrioritized && !b.isPrioritized) return -1;
-      if (!a.isPrioritized && b.isPrioritized) return 1;
-      return 0;
+    // 4. Format response
+    const formatUser = (u: any) => ({
+      id: u.id,
+      name: u.name,
+      college: u.college,
+      city: u.city,
+      bio: u.bio,
+      image: u.image,
+      skills: u.skills.map((s: any) => ({ id: s.skill.id, name: s.skill.name })),
+      hasTeam: false,
+      teamName: null,
+      lookingFor: [],
+      alreadySwiped: false,
     });
 
-    res.json(usersWithStatus);
-  } catch (err) {
-    console.error('Error fetching explore deck:', err);
-    res.status(500).json({ message: 'Error fetching explore deck' });
+    const finalUsers = [...prioritizedUsers.map(formatUser), ...otherUsers.map(formatUser)];
+
+    res.json(finalUsers);
+  } catch (error) {
+    console.error('Error fetching explore swipe deck:', error);
+    res.status(500).json({ message: 'Error fetching explore swipe deck' });
   }
 });
 

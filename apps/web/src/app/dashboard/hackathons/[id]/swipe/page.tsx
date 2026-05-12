@@ -22,15 +22,13 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
   const router = useRouter();
 
   const [hackathon, setHackathon] = useState<Hackathon | null>(null);
-  const [users, setUsers] = useState<SwipeDeckUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [deckEmpty, setDeckEmpty] = useState(false);
   const [matchResult, setMatchResult] = useState<SwipeResult | null>(null);
   const [connectingUser, setConnectingUser] = useState<SwipeDeckUser | null>(null);
   const [currentUserProfile, setCurrentUserProfile] = useState<{ title?: string | null } | null>(null);
 
-  // Fetch hackathon info + swipe deck
+  // Fetch hackathon info
   useEffect(() => {
     if (sessionLoading || !session) return;
 
@@ -42,31 +40,7 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
         const hackRes = await apiFetch(`/api/hackathons/${hackathonId}`);
         if (!hackRes.ok) throw new Error('Failed to load hackathon');
         const hackData: Hackathon = await hackRes.json();
-        
-        setTimeout(() => setHackathon(hackData), 0);
-
-        // Fetch swipe deck
-        const deckRes = await apiFetch(`/api/hackathons/${hackathonId}/swipe-deck`);
-        if (!deckRes.ok) throw new Error('Failed to load swipe deck');
-        const deckData: SwipeDeckUser[] = await deckRes.json();
-        
-        setTimeout(() => {
-          setUsers(deckData.map((u: SwipeDeckUser) => ({
-            ...u,
-            image: u.image || null,
-            bio: u.bio || null,
-            title: u.title || null,
-            college: u.college || null,
-            city: u.city || null,
-            linkedinUrl: u.linkedinUrl || null,
-            githubUrl: u.githubUrl || null,
-            skills: u.skills?.map((s: { skill?: { name: string }; name?: string } | string) => {
-              if (typeof s === 'string') return s;
-              return s.skill?.name || s.name || '';
-            }).filter(Boolean) || []
-          })));
-          setDeckEmpty(deckData.length === 0);
-        }, 0);
+        setHackathon(hackData);
 
         // Fetch current user profile for badges
         const profileRes = await apiFetch('/api/profile');
@@ -81,32 +55,11 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
       }
     };
 
-    const timer = setTimeout(() => {
-      void fetchData();
-    }, 0);
-    return () => clearTimeout(timer);
+    fetchData();
   }, [hackathonId, session, sessionLoading]);
-
-  const handleSwipe = async (userId: string, type: 'LEFT' | 'RIGHT'): Promise<SwipeResult> => {
-    const res = await apiFetch('/api/swipes', {
-      method: 'POST',
-      body: JSON.stringify({ receiverId: userId, hackathonId, type }),
-    });
-
-    if (!res.ok) {
-      const data: { message?: string } = await res.json();
-      throw new Error(data.message || 'Swipe failed');
-    }
-
-    return res.json();
-  };
 
   const handleMatch = (result: SwipeResult) => {
     setMatchResult(result);
-  };
-
-  const handleEmpty = () => {
-    setDeckEmpty(true);
   };
 
   // Auth loading
@@ -176,29 +129,11 @@ export default function SwipePage({ params }: { params: Promise<{ id: string }> 
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.1 }}
           >
-            {deckEmpty ? (
-              <div className="flex flex-col items-center justify-center h-[500px] text-center gap-4 animate-in fade-in zoom-in duration-500">
-                <div className="h-20 w-20 rounded-full bg-indigo-500/10 flex items-center justify-center border border-indigo-500/20">
-                  <Sparkles className="h-10 w-10 text-indigo-400" />
-                </div>
-                <h2 className="text-2xl font-bold">No more profiles!</h2>
-                <p className="text-zinc-500">You&apos;ve seen everyone for this hackathon. Check back later!</p>
-                <button
-                  onClick={() => router.push('/dashboard/hackathons')}
-                  className="mt-4 px-6 py-3 bg-zinc-900 border border-zinc-800 rounded-xl hover:bg-zinc-800 transition-colors"
-                >
-                  Back to Hackathons
-                </button>
-              </div>
-            ) : (
-              <SwipeDeck
-                users={users}
-                onSwipe={handleSwipe}
-                onConnect={(user) => setConnectingUser(user)}
-                onEmpty={handleEmpty}
-                onMatch={handleMatch}
-              />
-            )}
+            <SwipeDeck
+              context={{ mode: 'hackathon', hackathonId }}
+              onConnect={(user) => setConnectingUser(user)}
+              onMatch={handleMatch}
+            />
           </motion.div>
         )}
       </main>

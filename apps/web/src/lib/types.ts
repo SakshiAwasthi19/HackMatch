@@ -104,6 +104,13 @@ export interface SwipeDeckUser {
   linkedinUrl: string | null;
   githubUrl: string | null;
   role?: string | null;
-  skills: { skill: { id: string; name: string } }[] | string[];
+  skills: { id: string; name: string }[] | string[];
   lookingFor?: string[];
+  hasTeam?: boolean;
+  teamName?: string | null;
+  alreadySwiped?: boolean;
 }
+
+export type SwipeDeckContext =
+  | { mode: 'hackathon'; hackathonId: string }
+  | { mode: 'explore' };

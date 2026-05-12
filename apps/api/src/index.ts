@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
@@ -8,23 +11,18 @@ const PORT = process.env.PORT || 3001;
 // Allowed origins for CORS
 const allowedOrigins = [
   'http://localhost:3000',
+  'http://127.0.0.1:3000',
   process.env.FRONTEND_URL,
 ].filter(Boolean) as string[];
 
 // Middleware
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (server-to-server, health checks)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    callback(new Error(`CORS not allowed for origin: ${origin}`));
-  },
+  origin: allowedOrigins,
   credentials: true,
 }));
 app.use(express.json());
 app.use(morgan('dev'));
+app.use('/uploads', express.static('uploads'));
 
 import { toNodeHandler } from "better-auth/node";
 import { auth } from "./auth.js";
@@ -75,6 +73,6 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   });
 });
 
-app.listen(PORT, () => {
+app.listen(Number(PORT), "0.0.0.0", () => {
   console.log(`API server running on http://localhost:${PORT}`);
 });
