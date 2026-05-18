@@ -384,10 +384,11 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                             <div className="flex items-center gap-4">
                               <div className="relative h-10 w-10 rounded-full border border-zinc-800 p-0.5 group-hover:border-indigo-500/50 transition-all">
                                 <Image 
-                                  src={user.image || `https://ui-avatars.com/api/?name=${user.name}`} 
-                                  alt={user.name}
-                                  fill
-                                  className="object-cover rounded-full" 
+                                  src={user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}`} 
+                                  alt={user.name || 'User'}
+                                  width={40}
+                                  height={40}
+                                  className="object-cover rounded-full w-full h-full" 
                                 />
                               </div>
                               <div>
