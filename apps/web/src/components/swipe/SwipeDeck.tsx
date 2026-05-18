@@ -59,15 +59,15 @@ export default function SwipeDeck({
       
       setUsers(filteredData);
       setCurrentIndex(0);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
   }, [context, sessionKey]);
 
   useEffect(() => {
-    fetchDeck();
+    void fetchDeck();
   }, [fetchDeck]);
 
   const markSeen = (userId: string) => {

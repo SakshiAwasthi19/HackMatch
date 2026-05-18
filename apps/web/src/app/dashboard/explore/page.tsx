@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useSession, apiFetch } from '@/lib/auth-client';
+import React, { useState } from 'react';
+import { useSession } from '@/lib/auth-client';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Compass, Loader2, Sparkles, UserPlus } from 'lucide-react';
+import { Compass, Loader2, Sparkles } from 'lucide-react';
 import SwipeDeck from '@/components/swipe/SwipeDeck';
 import { SwipeResult, SwipeDeckUser } from '@/lib/types';
 import MatchOverlay from '@/components/match/MatchOverlay';

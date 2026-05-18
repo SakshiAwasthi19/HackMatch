@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import ProfileCard from '../shared/ProfileCard';
 import Image from 'next/image';
-import { authClient, useSession, apiFetch } from '@/lib/auth-client';
+import { useSession, apiFetch } from '@/lib/auth-client';
 
 const SUGGESTED_SKILLS = [
   'React', 'Next.js', 'TypeScript', 'JavaScript', 'Python',
@@ -29,7 +29,7 @@ const STEPS = [
 ];
 
 export default function ProfileView() {
-  const { data: session, isPending, error: sessionError, refetch } = useSession();
+  const { data: session, refetch } = useSession();
 
   // Multi-step state
   const [currentStep, setCurrentStep] = useState(0);

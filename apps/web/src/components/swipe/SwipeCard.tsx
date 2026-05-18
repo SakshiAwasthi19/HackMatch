@@ -29,7 +29,8 @@ export default function SwipeCard({ user, style, bind, isTop, onViewProfile }: S
     ? user.skills.map(s => {
         if (typeof s === 'string') return s;
         // Handle { id, name } OR { skill: { id, name } }
-        return (s as any).name || (s as any).skill?.name || '';
+        const skillObj = s as { name?: string; skill?: { name: string } };
+        return skillObj.name || skillObj.skill?.name || '';
       }).filter(Boolean)
     : [];
 

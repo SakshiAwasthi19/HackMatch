@@ -20,7 +20,7 @@ export const { useSession, signIn, signOut, signUp } = authClient;
  * Uses both cookies (cross-origin) and bearer token as fallback.
  */
 export async function apiFetch(path: string, options: RequestInit = {}) {
-    let apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
     
     // Fallback for Windows localhost issues if needed, but we'll stick to env first
     const token = typeof window !== "undefined" ? localStorage.getItem("bearer_token") : null;

@@ -30,15 +30,15 @@ export default function SwipeView({ selectedHackathonId: initialHackathonId, onM
     }
   }, []);
 
-  useEffect(() => {
-    fetchHackathons();
-  }, [fetchHackathons]);
+  const [prevInitialId, setPrevInitialId] = useState(initialHackathonId);
+  if (initialHackathonId !== prevInitialId) {
+    setPrevInitialId(initialHackathonId);
+    setActiveHackathonId(initialHackathonId);
+  }
 
   useEffect(() => {
-    if (initialHackathonId !== activeHackathonId) {
-      setActiveHackathonId(initialHackathonId);
-    }
-  }, [initialHackathonId]);
+    void fetchHackathons();
+  }, [fetchHackathons]);
 
   return (
     <div className="flex-1 w-full flex flex-col px-6 sm:px-8 lg:px-12 py-8 space-y-12 pb-20 items-center">

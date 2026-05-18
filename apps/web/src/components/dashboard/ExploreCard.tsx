@@ -97,7 +97,7 @@ export default function ExploreCard({
         </p>
 
         <div className="flex flex-wrap gap-1.5 mb-6">
-          {(user.skills || []).slice(0, 3).map((s: any, idx: number) => {
+          {(user.skills || []).slice(0, 3).map((s: string | { skill?: { name: string }; name?: string }, idx: number) => {
             const skillName = typeof s === 'string' ? s : (s.skill?.name || s.name || 'Hacker');
             return (
               <span key={idx} className="px-2 py-0.5 bg-zinc-900 border border-zinc-800 text-[9px] text-zinc-400 rounded-md font-bold uppercase tracking-tight">
