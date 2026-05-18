@@ -35,23 +35,25 @@ export const uploadAvatar = async (fileBuffer: Buffer, filename: string): Promis
     console.log('Generated Public URL:', publicData.publicUrl);
     return publicData.publicUrl;
   } catch (err) {
-    console.log('Using Local Storage Fallback...');
+    console.warn('Supabase Storage Error, falling back to persistent Base64 Data URL:', err);
     
-    // Fallback to local storage
-    const uploadsDir = path.join(process.cwd(), 'uploads');
-    const localPath = path.join(uploadsDir, filename);
+    // We still write locally if in local dev for safety / backup
+    try {
+      const uploadsDir = path.join(process.cwd(), 'uploads');
+      const localPath = path.join(uploadsDir, filename);
+      await fs.mkdir(path.dirname(localPath), { recursive: true });
+      await fs.writeFile(localPath, fileBuffer);
+      console.log('Local backup write successful');
+    } catch (localWriteErr) {
+      console.warn('Local backup write failed (expected on serverless environments like Vercel):', localWriteErr);
+    }
     
-    // Ensure directory exists
-    await fs.mkdir(path.dirname(localPath), { recursive: true });
+    // Fallback to Base64 Data URL (fully persistent in the PostgreSQL database)
+    const ext = filename.split('.').pop() || 'jpeg';
+    const mimeType = ext === 'png' ? 'image/png' : 'image/jpeg';
+    const base64Url = `data:${mimeType};base64,${fileBuffer.toString('base64')}`;
     
-    // Write file
-    await fs.writeFile(localPath, fileBuffer);
-    
-    // Construct local URL
-    const apiUrl = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 3001}`;
-    const localUrl = `${apiUrl}/uploads/${filename}`;
-    
-    console.log('Local Upload Success:', localUrl);
-    return localUrl;
+    console.log('Generated persistent Base64 fallback (length):', base64Url.length);
+    return base64Url;
   }
 };
