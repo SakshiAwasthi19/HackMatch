@@ -382,13 +382,14 @@ export default function AdminView({ initialTab = 'dashboard' }: AdminViewProps) 
                         <tr key={user.id} className="group hover:bg-zinc-800/10 transition-all">
                           <td className="py-5 px-4">
                             <div className="flex items-center gap-4">
-                              <div className="relative h-10 w-10 rounded-full border border-zinc-800 p-0.5 group-hover:border-indigo-500/50 transition-all">
+                              <div className="relative h-10 w-10 min-w-[40px] min-h-[40px] max-w-[40px] max-h-[40px] rounded-full border border-zinc-800 p-0.5 group-hover:border-indigo-500/50 transition-all flex-shrink-0 overflow-hidden flex items-center justify-center">
                                 <Image 
                                   src={user.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'User')}`} 
                                   alt={user.name || 'User'}
                                   width={40}
                                   height={40}
                                   className="object-cover rounded-full w-full h-full" 
+                                  unoptimized={true}
                                 />
                               </div>
                               <div>
