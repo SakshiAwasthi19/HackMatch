@@ -37,6 +37,7 @@ export default function SwipeView({ selectedHackathonId: initialHackathonId, onM
   }
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchHackathons();
   }, [fetchHackathons]);
 

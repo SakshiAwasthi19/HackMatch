@@ -67,6 +67,7 @@ export default function SwipeDeck({
   }, [context, sessionKey]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void fetchDeck();
   }, [fetchDeck]);
 
